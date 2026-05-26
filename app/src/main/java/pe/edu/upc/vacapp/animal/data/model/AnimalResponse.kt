@@ -13,19 +13,24 @@ data class AnimalResponse(
     val gender: String,
     val birthDate: String,
     val breed: String,
-    val location: String,
-    val bovineImg: String,
+    val location: String?,
+    val bovineImg: String?,
     val stableId: Int
 ) {
     @SuppressLint("DefaultLocale")
     fun toAnimal(): Animal {
-        val localDateTime = try {
-            LocalDateTime.parse(birthDate, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS"))
+        val birthDateOnly = try {
+            LocalDate.parse(birthDate, DateTimeFormatter.ofPattern("yyyy-MM-dd"))
         } catch (e: Exception) {
-            LocalDateTime.parse(birthDate, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"))
+            try {
+                LocalDateTime.parse(birthDate, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS"))
+                    .toLocalDate()
+            } catch (e: Exception) {
+                LocalDateTime.parse(birthDate, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"))
+                    .toLocalDate()
+            }
         }
 
-        val birthDateOnly = localDateTime.toLocalDate()
         val formattedDate = birthDateOnly.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
         val today = LocalDate.now()
 
@@ -46,8 +51,8 @@ data class AnimalResponse(
             age = age,
             birthDate = formattedDate,
             barnId = stableId,
-            location = location,
-            image = AnimalImage.FromUrl(bovineImg),
+            location = location.orEmpty(),
+            image = AnimalImage.FromUrl(bovineImg.orEmpty()),
             isMale = gender == "male"
         )
     }
