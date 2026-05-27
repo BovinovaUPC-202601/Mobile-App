@@ -53,6 +53,8 @@ import pe.edu.upc.vacapp.inventory.domain.model.Inventory
 import pe.edu.upc.vacapp.inventory.presentation.view.AddInventoryForm
 import pe.edu.upc.vacapp.inventory.presentation.view.InventoryCardList
 import pe.edu.upc.vacapp.inventory.presentation.view.InventoryDetails
+import pe.edu.upc.vacapp.alerts.presentation.di.PresentationModule.getAlertViewModel
+import pe.edu.upc.vacapp.alerts.presentation.view.AlertView
 import pe.edu.upc.vacapp.monitoring.presentation.di.PresentationModule.getMonitoringViewModel
 import pe.edu.upc.vacapp.monitoring.presentation.view.MonitoringView
 import pe.edu.upc.vacapp.shared.data.local.JwtStorage
@@ -70,6 +72,7 @@ fun Navigation(
     val selectedInventory = remember { mutableStateOf<Inventory?>(null) }
     val homeViewModel = getHomeViewModel()
     val monitoringViewModel = getMonitoringViewModel()
+    val alertViewModel      = getAlertViewModel()
 
     ModalNavigationDrawer(
         scrimColor = Color.Transparent, drawerContent = {
@@ -106,6 +109,12 @@ fun Navigation(
                 },
                 onTapMonitoring = {
                     navController.navigate("monitoring") {
+                        popUpTo("home") { inclusive = false }
+                        launchSingleTop = true
+                    }
+                },
+                onTapAlerts = {
+                    navController.navigate("alerts") {
                         popUpTo("home") { inclusive = false }
                         launchSingleTop = true
                     }
@@ -264,6 +273,12 @@ fun Navigation(
                 composable("monitoring") {
                     MonitoringView(monitoringViewModel)
                 }
+
+                composable("alerts") {
+                    // userId comes from homeViewModel user info
+                    val userId = homeViewModel.userInfo.value?.id ?: 0
+                    AlertView(alertViewModel, userId)
+                }
             }
         }
     }
@@ -278,6 +293,7 @@ fun DrawerList(
     onTapInventory: () -> Unit = {},
     onTapBarn: () -> Unit = {},
     onTapMonitoring: () -> Unit = {},
+    onTapAlerts: () -> Unit = {},
     onSignOut: () -> Unit = {}
 ) {
     Column(
@@ -376,6 +392,18 @@ fun DrawerList(
                     modifier = Modifier.size(30.dp)
                 )
                 Text("Monitoring", fontWeight = FontWeight.Normal, fontSize = 20.sp, color = Color.White)
+            }
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier.clickable { onTapAlerts() }) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_alerts),
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(30.dp)
+                )
+                Text("Alertas", fontWeight = FontWeight.Normal, fontSize = 20.sp, color = Color.White)
             }
         }
 
