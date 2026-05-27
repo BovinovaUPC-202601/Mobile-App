@@ -53,6 +53,8 @@ import pe.edu.upc.vacapp.inventory.domain.model.Inventory
 import pe.edu.upc.vacapp.inventory.presentation.view.AddInventoryForm
 import pe.edu.upc.vacapp.inventory.presentation.view.InventoryCardList
 import pe.edu.upc.vacapp.inventory.presentation.view.InventoryDetails
+import pe.edu.upc.vacapp.monitoring.presentation.di.PresentationModule.getMonitoringViewModel
+import pe.edu.upc.vacapp.monitoring.presentation.view.MonitoringView
 import pe.edu.upc.vacapp.shared.data.local.JwtStorage
 import pe.edu.upc.vacapp.ui.theme.Color
 
@@ -67,6 +69,7 @@ fun Navigation(
     val selectedAnimal = remember { mutableStateOf<Animal?>(null) }
     val selectedInventory = remember { mutableStateOf<Inventory?>(null) }
     val homeViewModel = getHomeViewModel()
+    val monitoringViewModel = getMonitoringViewModel()
 
     ModalNavigationDrawer(
         scrimColor = Color.Transparent, drawerContent = {
@@ -97,6 +100,12 @@ fun Navigation(
                 },
                 onTapBarn = {
                     navController.navigate("barn") {
+                        popUpTo("home") { inclusive = false }
+                        launchSingleTop = true
+                    }
+                },
+                onTapMonitoring = {
+                    navController.navigate("monitoring") {
                         popUpTo("home") { inclusive = false }
                         launchSingleTop = true
                     }
@@ -251,6 +260,10 @@ fun Navigation(
                         }
                     )
                 }
+
+                composable("monitoring") {
+                    MonitoringView(monitoringViewModel)
+                }
             }
         }
     }
@@ -264,6 +277,7 @@ fun DrawerList(
     onTapAnimal: () -> Unit = {},
     onTapInventory: () -> Unit = {},
     onTapBarn: () -> Unit = {},
+    onTapMonitoring: () -> Unit = {},
     onSignOut: () -> Unit = {}
 ) {
     Column(
@@ -350,6 +364,18 @@ fun DrawerList(
                     modifier = Modifier.size(30.dp)
                 )
                 Text("Barn", fontWeight = FontWeight.Normal, fontSize = 20.sp, color = Color.White)
+            }
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier.clickable { onTapMonitoring() }) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_monitoring),
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(30.dp)
+                )
+                Text("Monitoring", fontWeight = FontWeight.Normal, fontSize = 20.sp, color = Color.White)
             }
         }
 
