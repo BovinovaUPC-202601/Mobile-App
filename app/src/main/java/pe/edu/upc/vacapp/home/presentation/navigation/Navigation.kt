@@ -275,9 +275,8 @@ fun Navigation(
                 }
 
                 composable("alerts") {
-                    // userId comes from homeViewModel user info
-                    val userId = homeViewModel.userInfo.value?.id ?: 0
-                    AlertView(alertViewModel, userId)
+                    val userInfo by homeViewModel.userInfo.collectAsState()
+                    AlertView(alertViewModel, userInfo.id)
                 }
             }
         }
