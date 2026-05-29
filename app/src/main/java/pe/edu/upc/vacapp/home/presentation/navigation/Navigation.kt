@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -35,6 +37,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.launch
 import pe.edu.upc.vacapp.R
+import pe.edu.upc.vacapp.ai.presentation.di.PresentationModule.getAiAssistantViewModel
+import pe.edu.upc.vacapp.ai.presentation.view.AiAssistantView
 import pe.edu.upc.vacapp.animal.domain.model.Animal
 import pe.edu.upc.vacapp.animal.presentation.di.PresentationModule.getAnimalViewModel
 import pe.edu.upc.vacapp.animal.presentation.view.AddAnimalForm
@@ -115,6 +119,12 @@ fun Navigation(
                 },
                 onTapAlerts = {
                     navController.navigate("alerts") {
+                        popUpTo("home") { inclusive = false }
+                        launchSingleTop = true
+                    }
+                },
+                onTapAi = {
+                    navController.navigate("ai-assistant") {
                         popUpTo("home") { inclusive = false }
                         launchSingleTop = true
                     }
@@ -228,6 +238,11 @@ fun Navigation(
                     }
                 }
 
+                composable("ai-assistant") {
+                    val viewmodel = remember { getAiAssistantViewModel() }
+                    AiAssistantView(viewmodel)
+                }
+
                 composable("animal-details") {
                     AnimalDetails(selectedAnimal.value!!)
                 }
@@ -293,6 +308,7 @@ fun DrawerList(
     onTapBarn: () -> Unit = {},
     onTapMonitoring: () -> Unit = {},
     onTapAlerts: () -> Unit = {},
+    onTapAi: () -> Unit = {},
     onSignOut: () -> Unit = {}
 ) {
     Column(
@@ -403,6 +419,23 @@ fun DrawerList(
                     modifier = Modifier.size(30.dp)
                 )
                 Text("Alertas", fontWeight = FontWeight.Normal, fontSize = 20.sp, color = Color.White)
+            }
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier.clickable { onTapAi() }) {
+                Icon(
+                    imageVector = Icons.Filled.AutoAwesome,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(30.dp)
+                )
+                Text(
+                    "AI Assistant",
+                    fontWeight = FontWeight.Normal,
+                    fontSize = 20.sp,
+                    color = Color.White
+                )
             }
         }
 
