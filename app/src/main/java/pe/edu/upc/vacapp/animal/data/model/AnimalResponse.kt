@@ -51,7 +51,6 @@ data class AnimalResponse(
             age = age,
             birthDate = formattedDate,
             barnId = stableId,
-            location = location.orEmpty(),
             image = AnimalImage.FromUrl(bovineImg.orEmpty()),
             isMale = gender == "male"
         )

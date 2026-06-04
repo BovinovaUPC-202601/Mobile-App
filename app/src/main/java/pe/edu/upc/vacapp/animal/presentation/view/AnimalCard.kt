@@ -144,27 +144,27 @@ fun AnimalCard(
                         color = Color.Black
                     )
                     Text(
-                        animal.barnId.toString(),
+                        animal.barnName,
                         fontWeight = FontWeight.Light,
                         fontSize = 18.sp,
                         color = Color.Black
                     )
                 }
 
-                Column {
-                    Text(
+              /*  Column {
+                  *//*  Text(
                         "Weight",
                         fontWeight = FontWeight.Black,
                         fontSize = 12.sp,
                         color = Color.Black
-                    )
+                    )*//*
                     Text(
                         "${animal.weight} kg",
                         fontWeight = FontWeight.Light,
                         fontSize = 18.sp,
                         color = Color.Black
                     )
-                }
+                }*/
 
                 Column {
                     Text(

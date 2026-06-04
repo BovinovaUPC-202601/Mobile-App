@@ -22,6 +22,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import pe.edu.upc.vacapp.campaign.domain.model.Campaign
+import pe.edu.upc.vacapp.shared.data.di.timeFormatter
 import pe.edu.upc.vacapp.ui.theme.Color
 
 @Composable
@@ -87,7 +88,7 @@ fun CardCampaignView(
                     color = Color.Black
                 )
                 Text(
-                    campaign.startdate,
+                    timeFormatter.format(campaign.startDate),
                     fontWeight = FontWeight.Light,
                     fontSize = 16.sp,
                     color = Color.Black
@@ -105,7 +106,7 @@ fun CardCampaignView(
                     color = Color.Black
                 )
                 Text(
-                    campaign.enddate,
+                    timeFormatter.format(campaign.endDate),
                     fontWeight = FontWeight.Light,
                     fontSize = 16.sp,
                     color = Color.Black

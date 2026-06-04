@@ -27,7 +27,6 @@ interface AnimalService {
         @Part("Gender") gender: RequestBody,
         @Part("BirthDate") birthDate: RequestBody,
         @Part("Breed") breed: RequestBody,
-        @Part("Location") location: RequestBody,
         @Part("StableId") stableId: RequestBody,
         @Part FileData: MultipartBody.Part
     ): Response<AnimalResponse>

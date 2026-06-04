@@ -130,7 +130,7 @@ fun AnimalDetails(
                                 color = Color.Black
                             )
                             Text(
-                                animal.barnId.toString(),
+                                animal.barnName,
                                 fontWeight = FontWeight.Light,
                                 fontSize = 24.sp,
                                 color = Color.Black
@@ -141,20 +141,6 @@ fun AnimalDetails(
                     Column(
                         verticalArrangement = Arrangement.spacedBy(20.dp)
                     ) {
-                        Column {
-                            Text(
-                                "Weight",
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 12.sp,
-                                color = Color.Black
-                            )
-                            Text(
-                                "${animal.weight} kg",
-                                fontWeight = FontWeight.Light,
-                                fontSize = 24.sp,
-                                color = Color.Black
-                            )
-                        }
 
                         Column {
                             Text(
@@ -171,20 +157,7 @@ fun AnimalDetails(
                             )
                         }
 
-                        Column {
-                            Text(
-                                "Location",
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 12.sp,
-                                color = Color.Black
-                            )
-                            Text(
-                                animal.location,
-                                fontWeight = FontWeight.Light,
-                                fontSize = 24.sp,
-                                color = Color.Black
-                            )
-                        }
+
                     }
                 }
             }
