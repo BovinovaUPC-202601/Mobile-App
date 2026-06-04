@@ -63,6 +63,8 @@ fun AddAnimalForm(
     goHome: () -> Unit,
     goAnimals: () -> Unit
 ) {
+
+
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
@@ -91,6 +93,20 @@ fun AddAnimalCard(
     goHome: () -> Unit,
     goAnimals: () -> Unit
 ) {
+    val colors = TextFieldDefaults.colors(
+        focusedContainerColor = Color.Transparent,
+        unfocusedContainerColor = Color.Transparent,
+        disabledContainerColor = Color.Transparent,
+        errorContainerColor = Color.Transparent,
+        focusedIndicatorColor = Color.Black,
+        unfocusedIndicatorColor = Color.Black,
+        disabledIndicatorColor = Color.Black,
+        focusedLabelColor = Color.Black,
+        unfocusedLabelColor = Color.Black,
+        disabledLabelColor = Color.Black,
+        disabledTextColor = Color.Black
+    )
+
     val errorMessage = viewmodel.errorMessage.collectAsState().value
     val context = LocalContext.current
     val imageUri = remember { mutableStateOf<Uri?>(null) }
@@ -148,10 +164,7 @@ fun AddAnimalCard(
                 modifier = Modifier
                     .padding(bottom = 20.dp)
                     .widthIn(min = 155.dp),
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color.Transparent,
-                    unfocusedContainerColor = Color.Transparent,
-                ),
+                colors = colors,
                 trailingIcon = {
                     IconButton(
                         onClick = {
@@ -182,31 +195,14 @@ fun AddAnimalCard(
                 ) {
                     TextField(
                         modifier = Modifier.weight(1f),
-                        colors = TextFieldDefaults.colors(
-                            focusedContainerColor = Color.Transparent,
-                            unfocusedContainerColor = Color.Transparent,
-                        ),
+                        colors = colors,
                         value = newAnimal.value.breed,
                         label = { Text("Breed") },
                         onValueChange = { newAnimal.value = newAnimal.value.copy(breed = it) },
                         textStyle = TextStyle(color = Color.Black)
                     )
 
-                    TextField(
-                        modifier = Modifier.weight(1f),
-                        colors = TextFieldDefaults.colors(
-                            focusedContainerColor = Color.Transparent,
-                            unfocusedContainerColor = Color.Transparent,
-                        ),
-                        value = newAnimal.value.weight.toString(),
-                        label = { Text("Weight") },
-                        onValueChange = { newWeightString ->
-                            newAnimal.value = newAnimal.value.copy(
-                                weight = newWeightString.toDoubleOrNull() ?: newAnimal.value.weight
-                            )
-                        },
-                        textStyle = TextStyle(color = Color.Black),
-                    )
+
                 }
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(
@@ -241,17 +237,6 @@ fun AddAnimalCard(
                         )
                     }
 
-                    TextField(
-                        modifier = Modifier.weight(1f),
-                        colors = TextFieldDefaults.colors(
-                            focusedContainerColor = Color.Transparent,
-                            unfocusedContainerColor = Color.Transparent,
-                        ),
-                        value = newAnimal.value.location,
-                        label = { Text("Location") },
-                        onValueChange = { newAnimal.value = newAnimal.value.copy(location = it) },
-                        textStyle = TextStyle(color = Color.Black)
-                    )
                 }
             }
 
@@ -342,7 +327,19 @@ fun DatePickerTextField(
     val context = LocalContext.current
     val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
     val calendar = Calendar.getInstance()
-
+    val colors = TextFieldDefaults.colors(
+        focusedContainerColor = Color.Transparent,
+        unfocusedContainerColor = Color.Transparent,
+        disabledContainerColor = Color.Transparent,
+        errorContainerColor = Color.Transparent,
+        focusedIndicatorColor = Color.Black,
+        unfocusedIndicatorColor = Color.Black,
+        disabledIndicatorColor = Color.Black,
+        focusedLabelColor = Color.Black,
+        unfocusedLabelColor = Color.Black,
+        disabledLabelColor = Color.Black,
+        disabledTextColor = Color.Black
+    )
     val datePickerDialog = remember {
         DatePickerDialog(
             context,
@@ -373,10 +370,7 @@ fun DatePickerTextField(
                 )
             }
         },
-        colors = TextFieldDefaults.colors(
-            focusedContainerColor = Color.Transparent,
-            unfocusedContainerColor = Color.Transparent,
-        ),
+        colors = colors,
         textStyle = textStyle
     )
 }
@@ -391,7 +385,19 @@ fun DropdownSelector(
 ) {
     val expanded = remember { mutableStateOf(false) }
     val selectedItem = remember { mutableStateOf<Barn?>(null) }
-
+    val colors = TextFieldDefaults.colors(
+        focusedContainerColor = Color.Transparent,
+        unfocusedContainerColor = Color.Transparent,
+        disabledContainerColor = Color.Transparent,
+        errorContainerColor = Color.Transparent,
+        focusedIndicatorColor = Color.Black,
+        unfocusedIndicatorColor = Color.Black,
+        disabledIndicatorColor = Color.Black,
+        focusedLabelColor = Color.Black,
+        unfocusedLabelColor = Color.Black,
+        disabledLabelColor = Color.Black,
+        disabledTextColor = Color.Black
+    )
     Box(
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -410,10 +416,7 @@ fun DropdownSelector(
             },
             modifier = Modifier
                 .fillMaxWidth(),
-            colors = TextFieldDefaults.colors(
-                focusedContainerColor = Color.Transparent,
-                unfocusedContainerColor = Color.Transparent,
-            ),
+            colors = colors,
             textStyle = textStyle
         )
 

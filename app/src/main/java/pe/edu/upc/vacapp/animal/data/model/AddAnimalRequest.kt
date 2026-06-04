@@ -1,6 +1,5 @@
 package pe.edu.upc.vacapp.animal.data.model
 
-import okhttp3.RequestBody.Companion.toRequestBody
 import org.threeten.bp.LocalDate
 import org.threeten.bp.format.DateTimeFormatter
 import pe.edu.upc.vacapp.animal.domain.model.Animal
@@ -12,7 +11,6 @@ data class AddAnimalRequest(
     val gender: String,
     val birthDate: String,
     val breed: String,
-    val location: String,
     val stableId: Int,
     val image: File
 ) {
@@ -29,7 +27,6 @@ data class AddAnimalRequest(
                 if (animal.isMale) "male" else "female",
                 formatedDate.toString(),
                 animal.breed,
-                animal.location,
                 animal.barnId,
                 file
             )

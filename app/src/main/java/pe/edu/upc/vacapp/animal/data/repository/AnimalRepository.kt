@@ -1,11 +1,9 @@
 package pe.edu.upc.vacapp.animal.data.repository
 
-import android.net.Uri
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import pe.edu.upc.vacapp.Vacapp
 import pe.edu.upc.vacapp.animal.data.model.AddAnimalRequest
-import pe.edu.upc.vacapp.animal.data.model.AnimalResponse
 import pe.edu.upc.vacapp.animal.data.model.toMultipartPart
 import pe.edu.upc.vacapp.animal.data.model.toRequestBody
 import pe.edu.upc.vacapp.animal.data.remote.AnimalService
@@ -25,7 +23,6 @@ class AnimalRepository(
             req.gender.toRequestBody(),
             req.birthDate.toRequestBody(),
             req.breed.toRequestBody(),
-            req.location.toRequestBody(),
             req.stableId.toRequestBody(),
             req.image.toMultipartPart("FileData")
         )
@@ -42,7 +39,17 @@ class AnimalRepository(
         val res = animalService.getAllAnimals()
 
         if (res.isSuccessful) {
-            res.body()?.map { it.toAnimal() } ?: emptyList()
+            val animalsResponse = res.body() ?: emptyList()
+
+            val barns = getBarns()
+
+            animalsResponse.map { animalDto ->
+                val animal = animalDto.toAnimal()
+
+                val matchingBarnName = barns.find { it.id == animal.barnId }?.name ?: "Sin Establo"
+
+                animal.copy(barnName = matchingBarnName)
+            }
         } else {
             throw Exception("Error fetching animals: ${res.errorBody()?.string()}")
         }
