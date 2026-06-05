@@ -124,6 +124,7 @@ fun HealthRecordCard(record: HealthRecord, isLatest: Boolean) {
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 Text("🌡 ${record.temperature} °C", fontSize = 14.sp)
                 Text("❤ ${record.heartRate.toInt()} BPM", fontSize = 14.sp)
+                Text("🔋 ${record.batteryLevel}%", fontSize = 14.sp)
             }
 
             Text(

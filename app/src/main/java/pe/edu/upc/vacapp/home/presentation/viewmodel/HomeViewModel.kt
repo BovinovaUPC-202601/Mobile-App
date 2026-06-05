@@ -8,6 +8,7 @@ import kotlinx.coroutines.launch
 import pe.edu.upc.vacapp.home.data.repository.Result
 import pe.edu.upc.vacapp.home.data.repository.UserInfoRepository
 import pe.edu.upc.vacapp.home.domain.model.UserInfo
+import pe.edu.upc.vacapp.shared.data.local.UserStorage
 
 class HomeViewModel(
     private val getUserInfoRepository: UserInfoRepository
@@ -29,6 +30,8 @@ class HomeViewModel(
                 is Result.Success -> {
                     _userInfo.value = result.data
                     _errorMessage.value = null
+                    // Persist the id so the alert poller/worker knows whose alerts to fetch.
+                    if (result.data.id > 0) UserStorage.saveUserId(result.data.id)
                 }
                 is Result.Error -> {
                     _errorMessage.value = result.exception.message ?: "Error desconocido"

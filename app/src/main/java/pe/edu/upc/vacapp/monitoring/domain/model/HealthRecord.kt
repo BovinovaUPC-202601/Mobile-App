@@ -6,6 +6,7 @@ data class HealthRecord(
     val deviceId: String,
     val temperature: Float,
     val heartRate: Float,
+    val batteryLevel: Int,
     val isAlert: Boolean,
     val recordedAt: String
 ) {
