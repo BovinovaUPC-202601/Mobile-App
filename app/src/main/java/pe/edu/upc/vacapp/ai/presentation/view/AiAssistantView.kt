@@ -433,10 +433,12 @@ private fun PhotoAnalysisSection(
                 Icon(Icons.Filled.AutoAwesome, contentDescription = null)
             }
             Spacer(Modifier.size(8.dp))
-            Text("Analyze with AI")
+            Text(if (isAnalysisLoading) "Analyzing..." else "Analyze with AI")
         }
 
-        if (analysisResult != null) {
+        if (isAnalysisLoading) {
+            AnalysisLoadingCard()
+        } else if (analysisResult != null) {
             AnalysisResultCard(analysisResult)
         }
 
@@ -638,6 +640,42 @@ private fun PhotoPreview(
 }
 
 @Composable
+private fun AnalysisLoadingCard() {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(8.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.AlmondCream)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp),
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(26.dp),
+                color = Color.ForestGreen,
+                strokeWidth = 2.5.dp
+            )
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(
+                    text = "Analyzing photo with AI...",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 15.sp,
+                    color = Color.Black
+                )
+                Text(
+                    text = "This can take a few seconds.",
+                    fontSize = 12.sp,
+                    color = Color.Green
+                )
+            }
+        }
+    }
+}
+
+@Composable
 private fun AnalysisResultCard(result: AnalysisResultResponse) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -669,7 +707,7 @@ private fun AnalysisResultCard(result: AnalysisResultResponse) {
                 color = Color.Black
             )
             Text(
-                text = "${String.format(Locale.US, "%.1f", result.score)} / 5",
+                text = formatBcs(result.score),
                 fontWeight = FontWeight.Bold,
                 fontSize = 34.sp,
                 color = Color.Black
@@ -747,7 +785,7 @@ private fun AnalysisHistoryList(history: List<AiAnalysisHistoryItem>) {
                         )
                         UrgencyBadge(item.result.urgency)
                         Text(
-                            text = "BCS ${String.format(Locale.US, "%.1f", item.result.score)} / 5",
+                            text = "BCS ${formatBcs(item.result.score)}",
                             fontWeight = FontWeight.Bold,
                             color = Color.Black
                         )
@@ -850,6 +888,11 @@ private fun ErrorCard(
             }
         }
     }
+}
+
+/** Body Condition Score is a 1.0–5.0 scale; clamp defensively so a stray value never renders as e.g. 0.9 / 5. */
+private fun formatBcs(score: Double): String {
+    return "${String.format(Locale.US, "%.1f", score.coerceIn(1.0, 5.0))} / 5"
 }
 
 private fun uriToBase64(context: Context, uri: Uri): String {
