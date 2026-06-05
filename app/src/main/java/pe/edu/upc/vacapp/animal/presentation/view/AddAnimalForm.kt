@@ -55,6 +55,8 @@ import pe.edu.upc.vacapp.barn.domain.model.Barn
 import pe.edu.upc.vacapp.ui.theme.Color
 import java.io.File
 import java.util.Calendar
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 
 //@Preview(showBackground = true)
 @Composable
@@ -63,6 +65,8 @@ fun AddAnimalForm(
     goHome: () -> Unit,
     goAnimals: () -> Unit
 ) {
+
+
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
@@ -84,6 +88,12 @@ fun AddAnimalForm(
     }
 }
 
+// Constantes de validación biológica
+private const val MIN_TEMP_LIMIT = 30.0
+private const val MAX_TEMP_LIMIT = 45.0
+private const val MIN_HR_LIMIT = 10
+private const val MAX_HR_LIMIT = 150
+
 //@Preview
 @Composable
 fun AddAnimalCard(
@@ -91,6 +101,20 @@ fun AddAnimalCard(
     goHome: () -> Unit,
     goAnimals: () -> Unit
 ) {
+    val colors = TextFieldDefaults.colors(
+        focusedContainerColor = Color.Transparent,
+        unfocusedContainerColor = Color.Transparent,
+        disabledContainerColor = Color.Transparent,
+        errorContainerColor = Color.Transparent,
+        focusedIndicatorColor = Color.Black,
+        unfocusedIndicatorColor = Color.Black,
+        disabledIndicatorColor = Color.Black,
+        focusedLabelColor = Color.Black,
+        unfocusedLabelColor = Color.Black,
+        disabledLabelColor = Color.Black,
+        disabledTextColor = Color.Black
+    )
+
     val errorMessage = viewmodel.errorMessage.collectAsState().value
     val context = LocalContext.current
     val imageUri = remember { mutableStateOf<Uri?>(null) }
@@ -98,6 +122,12 @@ fun AddAnimalCard(
     val newAnimal = remember { mutableStateOf(Animal()) }
     val barns = viewmodel.barn.collectAsState()
     val addSuccess = viewmodel.addAnimalSuccess.collectAsState().value
+
+    // Estado local para los errores de validación del formulario
+    val localValidationError = remember { mutableStateOf("") }
+
+    // Estado para el scroll
+    val scrollState = rememberScrollState()
 
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -124,10 +154,15 @@ fun AddAnimalCard(
     }
 
     Card(
-        modifier = Modifier.padding(horizontal = 20.dp)
+        modifier = Modifier
+            .padding(horizontal = 20.dp, vertical = 10.dp) // Añadido un poco de padding vertical externo
+            .fillMaxWidth() // Asegura que tome el ancho disponible
     ) {
         Column(
-            modifier = Modifier.background(Color.AlmondCream),
+            modifier = Modifier
+                .background(Color.AlmondCream)
+                .verticalScroll(scrollState) // <-- AQUÍ ESTÁ LA MAGIA DEL SCROLL
+                .padding(vertical = 16.dp), // Padding interno superior e inferior
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             AsyncImage(
@@ -135,8 +170,8 @@ fun AddAnimalCard(
                 model = imageUri.value,
                 contentDescription = null,
                 modifier = Modifier
-                    .padding(vertical = 30.dp)
-                    .size(300.dp, 200.dp)
+                    .padding(vertical = 16.dp) // Reducido de 30 a 16
+                    .size(240.dp, 160.dp) // Reducido de 300x200 para ahorrar espacio
                     .clip(RoundedCornerShape(8.dp))
                     .clickable {
                         launcher.launch("image/*")
@@ -146,12 +181,9 @@ fun AddAnimalCard(
 
             TextField(
                 modifier = Modifier
-                    .padding(bottom = 20.dp)
+                    .padding(bottom = 16.dp)
                     .widthIn(min = 155.dp),
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color.Transparent,
-                    unfocusedContainerColor = Color.Transparent,
-                ),
+                colors = colors,
                 trailingIcon = {
                     IconButton(
                         onClick = {
@@ -182,32 +214,14 @@ fun AddAnimalCard(
                 ) {
                     TextField(
                         modifier = Modifier.weight(1f),
-                        colors = TextFieldDefaults.colors(
-                            focusedContainerColor = Color.Transparent,
-                            unfocusedContainerColor = Color.Transparent,
-                        ),
+                        colors = colors,
                         value = newAnimal.value.breed,
                         label = { Text("Breed") },
                         onValueChange = { newAnimal.value = newAnimal.value.copy(breed = it) },
                         textStyle = TextStyle(color = Color.Black)
                     )
-
-                    TextField(
-                        modifier = Modifier.weight(1f),
-                        colors = TextFieldDefaults.colors(
-                            focusedContainerColor = Color.Transparent,
-                            unfocusedContainerColor = Color.Transparent,
-                        ),
-                        value = newAnimal.value.weight.toString(),
-                        label = { Text("Weight") },
-                        onValueChange = { newWeightString ->
-                            newAnimal.value = newAnimal.value.copy(
-                                weight = newWeightString.toDoubleOrNull() ?: newAnimal.value.weight
-                            )
-                        },
-                        textStyle = TextStyle(color = Color.Black),
-                    )
                 }
+
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(
                         20.dp,
@@ -222,8 +236,8 @@ fun AddAnimalCard(
                         },
                         textStyle = TextStyle(color = Color.Black)
                     )
-
                 }
+
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(
                         20.dp,
@@ -240,21 +254,67 @@ fun AddAnimalCard(
                             textStyle = TextStyle(color = Color.Black)
                         )
                     }
+                }
 
-                    TextField(
-                        modifier = Modifier.weight(1f),
-                        colors = TextFieldDefaults.colors(
-                            focusedContainerColor = Color.Transparent,
-                            unfocusedContainerColor = Color.Transparent,
-                        ),
-                        value = newAnimal.value.location,
-                        label = { Text("Location") },
-                        onValueChange = { newAnimal.value = newAnimal.value.copy(location = it) },
-                        textStyle = TextStyle(color = Color.Black)
+                // --- Fila de Umbrales de Temperatura ---
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(
+                        10.dp, // Reducido el espacio entre inputs numéricos
+                        Alignment.CenterHorizontally
+                    ),
+                    modifier = Modifier.padding(top = 8.dp)
+                ) {
+                    NumberTextField(
+                        label = "Temp. Mín (°C)",
+                        initialValue = newAnimal.value.minTemperature,
+                        onValueChange = { newAnimal.value = newAnimal.value.copy(minTemperature = it.toDouble()) },
+                        modifier = Modifier.weight(1f)
+                    )
+                    NumberTextField(
+                        label = "Temp. Máx (°C)",
+                        initialValue = newAnimal.value.maxTemperature,
+                        onValueChange = { newAnimal.value = newAnimal.value.copy(maxTemperature = it.toDouble()) },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+
+                // --- Fila de Umbrales de Ritmo Cardíaco ---
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(
+                        10.dp, // Reducido el espacio entre inputs numéricos
+                        Alignment.CenterHorizontally
+                    ),
+                    modifier = Modifier.padding(top = 8.dp)
+                ) {
+                    NumberTextField(
+                        label = "HR Mín (BPM)",
+                        initialValue = newAnimal.value.minHeartRate,
+                        onValueChange = { newAnimal.value = newAnimal.value.copy(minHeartRate = it.toInt()) },
+                        modifier = Modifier.weight(1f)
+                    )
+                    NumberTextField(
+                        label = "HR Máx (BPM)",
+                        initialValue = newAnimal.value.maxHeartRate,
+                        onValueChange = { newAnimal.value = newAnimal.value.copy(maxHeartRate = it.toInt()) },
+                        modifier = Modifier.weight(1f)
                     )
                 }
             }
 
+            // Errores de validación local (umbrales)
+            if (localValidationError.value.isNotEmpty()) {
+                Text(
+                    text = localValidationError.value,
+                    color = androidx.compose.ui.graphics.Color.Red,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier
+                        .padding(horizontal = 20.dp, vertical = 8.dp)
+                        .fillMaxWidth()
+                )
+            }
+
+            // Errores que vienen del ViewModel
             if (!errorMessage.isNullOrEmpty()) {
                 Text(
                     text = errorMessage,
@@ -269,12 +329,13 @@ fun AddAnimalCard(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(end = 10.dp),
+                    .padding(end = 20.dp, top = 10.dp), // Ajustado el padding para los botones
                 horizontalArrangement = Arrangement.End
             ) {
                 IconButton(
                     onClick = {
                         viewmodel.clearErrorMessage()
+                        localValidationError.value = ""
                         goHome()
                     }
                 ) {
@@ -285,8 +346,25 @@ fun AddAnimalCard(
                         tint = Color.Black
                     )
                 }
+
+                // Botón de Guardar con Lógica de Validación
                 IconButton(
-                    onClick = { viewmodel.addAnimal(newAnimal.value) }
+                    onClick = {
+                        val animal = newAnimal.value
+                        localValidationError.value = ""
+
+                        if (animal.minTemperature > animal.maxTemperature) {
+                            localValidationError.value = "La temp. mínima no puede ser mayor a la máxima."
+                        } else if (animal.minHeartRate > animal.maxHeartRate) {
+                            localValidationError.value = "El HR mínimo no puede ser mayor al máximo."
+                        } else if (animal.minTemperature < MIN_TEMP_LIMIT || animal.maxTemperature > MAX_TEMP_LIMIT) {
+                            localValidationError.value = "La temp. debe estar entre $MIN_TEMP_LIMIT y $MAX_TEMP_LIMIT °C."
+                        } else if (animal.minHeartRate < MIN_HR_LIMIT || animal.maxHeartRate > MAX_HR_LIMIT) {
+                            localValidationError.value = "El ritmo cardíaco debe estar entre $MIN_HR_LIMIT y $MAX_HR_LIMIT BPM."
+                        } else {
+                            viewmodel.addAnimal(animal)
+                        }
+                    }
                 ) {
                     Icon(
                         painterResource(R.drawable.check_circle), null,
@@ -306,6 +384,19 @@ fun NumberTextField(
     onValueChange: (Number) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colors = TextFieldDefaults.colors(
+        focusedContainerColor = Color.Transparent,
+        unfocusedContainerColor = Color.Transparent,
+        disabledContainerColor = Color.Transparent,
+        errorContainerColor = Color.Transparent,
+        focusedIndicatorColor = Color.Black,
+        unfocusedIndicatorColor = Color.Black,
+        disabledIndicatorColor = Color.Black,
+        focusedLabelColor = Color.Black,
+        unfocusedLabelColor = Color.Black,
+        disabledLabelColor = Color.Black,
+        disabledTextColor = Color.Black
+    )
     val textState = remember { mutableStateOf(initialValue?.toString() ?: "") }
 
     TextField(
@@ -324,10 +415,8 @@ fun NumberTextField(
         label = { Text(label) },
         keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
         modifier = modifier,
-        colors = TextFieldDefaults.colors(
-            focusedContainerColor = Color.Transparent,
-            unfocusedContainerColor = Color.Transparent
-        )
+        colors = colors,
+        textStyle = TextStyle(color = Color.Black)
     )
 }
 
@@ -342,7 +431,19 @@ fun DatePickerTextField(
     val context = LocalContext.current
     val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
     val calendar = Calendar.getInstance()
-
+    val colors = TextFieldDefaults.colors(
+        focusedContainerColor = Color.Transparent,
+        unfocusedContainerColor = Color.Transparent,
+        disabledContainerColor = Color.Transparent,
+        errorContainerColor = Color.Transparent,
+        focusedIndicatorColor = Color.Black,
+        unfocusedIndicatorColor = Color.Black,
+        disabledIndicatorColor = Color.Black,
+        focusedLabelColor = Color.Black,
+        unfocusedLabelColor = Color.Black,
+        disabledLabelColor = Color.Black,
+        disabledTextColor = Color.Black
+    )
     val datePickerDialog = remember {
         DatePickerDialog(
             context,
@@ -373,10 +474,7 @@ fun DatePickerTextField(
                 )
             }
         },
-        colors = TextFieldDefaults.colors(
-            focusedContainerColor = Color.Transparent,
-            unfocusedContainerColor = Color.Transparent,
-        ),
+        colors = colors,
         textStyle = textStyle
     )
 }
@@ -391,7 +489,19 @@ fun DropdownSelector(
 ) {
     val expanded = remember { mutableStateOf(false) }
     val selectedItem = remember { mutableStateOf<Barn?>(null) }
-
+    val colors = TextFieldDefaults.colors(
+        focusedContainerColor = Color.Transparent,
+        unfocusedContainerColor = Color.Transparent,
+        disabledContainerColor = Color.Transparent,
+        errorContainerColor = Color.Transparent,
+        focusedIndicatorColor = Color.Black,
+        unfocusedIndicatorColor = Color.Black,
+        disabledIndicatorColor = Color.Black,
+        focusedLabelColor = Color.Black,
+        unfocusedLabelColor = Color.Black,
+        disabledLabelColor = Color.Black,
+        disabledTextColor = Color.Black
+    )
     Box(
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -410,10 +520,7 @@ fun DropdownSelector(
             },
             modifier = Modifier
                 .fillMaxWidth(),
-            colors = TextFieldDefaults.colors(
-                focusedContainerColor = Color.Transparent,
-                unfocusedContainerColor = Color.Transparent,
-            ),
+            colors = colors,
             textStyle = textStyle
         )
 

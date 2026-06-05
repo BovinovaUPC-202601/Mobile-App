@@ -41,7 +41,6 @@ import pe.edu.upc.vacapp.barn.domain.model.Barn
 import pe.edu.upc.vacapp.campaign.domain.model.Campaign
 import pe.edu.upc.vacapp.campaign.presentation.viewmodel.CampaignViewModel
 import pe.edu.upc.vacapp.ui.theme.Color
-import java.util.Calendar
 
 @Composable
 
@@ -126,17 +125,17 @@ fun AddCampaignView(
 
             DatePickerTextField(
                 label = "Start date",
-                date = campaign.value.startdate,
+                date = campaign.value.startDate,
                 onDateChange = {
-                    campaign.value = campaign.value.copy(startdate = it)
+                    campaign.value = campaign.value.copy(startDate = it)
                 }
             )
 
             DatePickerTextField(
                 label = "End date",
-                date = campaign.value.enddate,
+                date = campaign.value.endDate,
                 onDateChange = {
-                    campaign.value = campaign.value.copy(enddate = it)
+                    campaign.value = campaign.value.copy(endDate = it)
                 }
             )
 
@@ -173,23 +172,23 @@ fun AddCampaignView(
 @Composable
 fun DatePickerTextField(
     label: String,
-    date: String,
-    onDateChange: (String) -> Unit
+    date: LocalDate,
+    onDateChange: (LocalDate) -> Unit
 ) {
     val context = LocalContext.current
     val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
-    val calendar = Calendar.getInstance()
+
 
     val datePickerDialog = remember {
         DatePickerDialog(
             context,
             { _, year, month, dayOfMonth ->
                 val selectedDate = LocalDate.of(year, month + 1, dayOfMonth)
-                onDateChange(selectedDate.format(formatter))
+                onDateChange(selectedDate)
             },
-            calendar.get(Calendar.YEAR),
-            calendar.get(Calendar.MONTH),
-            calendar.get(Calendar.DAY_OF_MONTH)
+            date.year,
+            date.monthValue - 1,
+            date.dayOfMonth
         )
     }
 
@@ -197,7 +196,7 @@ fun DatePickerTextField(
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 8.dp),
-        value = date,
+        value = date.format(formatter),
         onValueChange = { },
         readOnly = true,
         label = {

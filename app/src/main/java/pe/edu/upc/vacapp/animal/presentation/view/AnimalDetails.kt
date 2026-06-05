@@ -44,8 +44,9 @@ fun AnimalDetails(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        // Se ha aumentado un poco la altura de la tarjeta para que quepan los nuevos datos sin verse apretados
         Card(
-            modifier = Modifier.size(355.dp, 565.dp),
+            modifier = Modifier.size(355.dp, 600.dp),
             colors = CardDefaults.cardColors(
                 containerColor = Color.AlmondCream,
             )
@@ -89,6 +90,7 @@ fun AnimalDetails(
                         .padding(top = 30.dp),
                     horizontalArrangement = Arrangement.SpaceEvenly,
                 ) {
+                    // COLUMNA IZQUIERDA
                     Column(
                         verticalArrangement = Arrangement.spacedBy(20.dp)
                     ) {
@@ -130,7 +132,7 @@ fun AnimalDetails(
                                 color = Color.Black
                             )
                             Text(
-                                animal.barnId.toString(),
+                                animal.barnName,
                                 fontWeight = FontWeight.Light,
                                 fontSize = 24.sp,
                                 color = Color.Black
@@ -138,23 +140,10 @@ fun AnimalDetails(
                         }
                     }
 
+                    // COLUMNA DERECHA
                     Column(
                         verticalArrangement = Arrangement.spacedBy(20.dp)
                     ) {
-                        Column {
-                            Text(
-                                "Weight",
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 12.sp,
-                                color = Color.Black
-                            )
-                            Text(
-                                "${animal.weight} kg",
-                                fontWeight = FontWeight.Light,
-                                fontSize = 24.sp,
-                                color = Color.Black
-                            )
-                        }
 
                         Column {
                             Text(
@@ -171,20 +160,38 @@ fun AnimalDetails(
                             )
                         }
 
+                        // --- NUEVO: Rango de Temperatura ---
                         Column {
                             Text(
-                                "Location",
+                                "Temperature Range",
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 12.sp,
                                 color = Color.Black
                             )
                             Text(
-                                animal.location,
+                                "${animal.minTemperature} - ${animal.maxTemperature} °C",
                                 fontWeight = FontWeight.Light,
-                                fontSize = 24.sp,
+                                fontSize = 20.sp, // Ligeramente más pequeño para que quepa bien
                                 color = Color.Black
                             )
                         }
+
+                        // --- NUEVO: Rango de Ritmo Cardíaco ---
+                        Column {
+                            Text(
+                                "Heart Rate Range",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 12.sp,
+                                color = Color.Black
+                            )
+                            Text(
+                                "${animal.minHeartRate} - ${animal.maxHeartRate} BPM",
+                                fontWeight = FontWeight.Light,
+                                fontSize = 20.sp, // Ligeramente más pequeño para que quepa bien
+                                color = Color.Black
+                            )
+                        }
+
                     }
                 }
             }

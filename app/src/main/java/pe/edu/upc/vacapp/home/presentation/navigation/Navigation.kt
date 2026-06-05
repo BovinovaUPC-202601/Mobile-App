@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Analytics
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.Icon
@@ -368,7 +369,7 @@ fun DrawerList(
                     color = Color.White
                 )
             }
-            Row(
+           /* Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                 modifier = Modifier.clickable { onTapInventory() }
@@ -385,7 +386,7 @@ fun DrawerList(
                     fontSize = 20.sp,
                     color = Color.White
                 )
-            }
+            }*/
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -403,7 +404,7 @@ fun DrawerList(
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                 modifier = Modifier.clickable { onTapMonitoring() }) {
                 Icon(
-                    painter = painterResource(R.drawable.ic_monitoring),
+                    imageVector = Icons.Default.Analytics,
                     contentDescription = null,
                     tint = Color.White,
                     modifier = Modifier.size(30.dp)
@@ -445,7 +446,7 @@ fun DrawerList(
             modifier = Modifier.padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp),
         ) {
-            Row(
+           /* Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
@@ -461,7 +462,7 @@ fun DrawerList(
                     fontSize = 20.sp,
                     color = Color.White
                 )
-            }
+            }*/
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,

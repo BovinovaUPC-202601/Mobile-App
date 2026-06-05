@@ -27,9 +27,12 @@ interface AnimalService {
         @Part("Gender") gender: RequestBody,
         @Part("BirthDate") birthDate: RequestBody,
         @Part("Breed") breed: RequestBody,
-        @Part("Location") location: RequestBody,
         @Part("StableId") stableId: RequestBody,
-        @Part FileData: MultipartBody.Part
+        @Part("MinTemperature") minTemperature: RequestBody,
+        @Part("MaxTemperature") maxTemperature: RequestBody,
+        @Part("MinHeartRate") minHeartRate: RequestBody,
+        @Part("MaxHeartRate") maxHeartRate: RequestBody,
+        @Part FileData: MultipartBody.Part,
     ): Response<AnimalResponse>
 
     @GET("bovines")

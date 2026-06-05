@@ -144,7 +144,7 @@ fun AnimalCard(
                         color = Color.Black
                     )
                     Text(
-                        animal.barnId.toString(),
+                        animal.barnName,
                         fontWeight = FontWeight.Light,
                         fontSize = 18.sp,
                         color = Color.Black
@@ -153,13 +153,28 @@ fun AnimalCard(
 
                 Column {
                     Text(
-                        "Weight",
+                        "Temperature",
                         fontWeight = FontWeight.Black,
                         fontSize = 12.sp,
                         color = Color.Black
                     )
                     Text(
-                        "${animal.weight} kg",
+                        "${animal.minTemperature} - ${animal.maxTemperature} °C",
+                        fontWeight = FontWeight.Light,
+                        fontSize = 18.sp,
+                        color = Color.Black
+                    )
+                }
+
+                Column {
+                    Text(
+                        "Heart Rate",
+                        fontWeight = FontWeight.Black,
+                        fontSize = 12.sp,
+                        color = Color.Black
+                    )
+                    Text(
+                        "${animal.minHeartRate} - ${animal.maxHeartRate} BPM",
                         fontWeight = FontWeight.Light,
                         fontSize = 18.sp,
                         color = Color.Black
@@ -174,7 +189,7 @@ fun AnimalCard(
                         color = Color.Black
                     )
                     Text(
-                        "${animal.age.toString()} years",
+                        "${animal.age} years",
                         fontWeight = FontWeight.Light,
                         fontSize = 18.sp,
                         color = Color.Black

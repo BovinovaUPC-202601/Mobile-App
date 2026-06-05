@@ -1,6 +1,5 @@
 package pe.edu.upc.vacapp.animal.data.model
 
-import okhttp3.RequestBody.Companion.toRequestBody
 import org.threeten.bp.LocalDate
 import org.threeten.bp.format.DateTimeFormatter
 import pe.edu.upc.vacapp.animal.domain.model.Animal
@@ -12,9 +11,12 @@ data class AddAnimalRequest(
     val gender: String,
     val birthDate: String,
     val breed: String,
-    val location: String,
     val stableId: Int,
-    val image: File
+    val image: File,
+    val minTemperature: Double,
+    val maxTemperature: Double,
+    val minHeartRate: Int,
+    val maxHeartRate: Int
 ) {
     companion object {
         fun fromAnimal(animal: Animal): AddAnimalRequest {
@@ -22,16 +24,19 @@ data class AddAnimalRequest(
                 ?: throw IllegalArgumentException("Animal must have a local image file to upload")
 
             val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
-            val formatedDate = LocalDate.parse(animal.birthDate,dateFormatter)
+            val formatedDate = LocalDate.parse(animal.birthDate, dateFormatter)
 
             return AddAnimalRequest(
                 animal.name,
                 if (animal.isMale) "male" else "female",
                 formatedDate.toString(),
                 animal.breed,
-                animal.location,
                 animal.barnId,
-                file
+                file,
+                animal.minTemperature,
+                animal.maxTemperature,
+                animal.minHeartRate,
+                animal.maxHeartRate
             )
 
         }

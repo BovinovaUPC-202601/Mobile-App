@@ -110,7 +110,7 @@ fun Login(
                 .padding(bottom = 35.dp)
         )
 
-        Row(
+       /* Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 50.dp),
@@ -168,7 +168,7 @@ fun Login(
                     )
                 }
             }
-        }
+        }*/
 
         Column(
             modifier = Modifier
