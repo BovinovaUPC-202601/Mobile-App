@@ -45,6 +45,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -53,6 +54,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -101,8 +103,8 @@ fun AiAssistantView(
     val errorMessage by viewModel.errorMessage.collectAsState()
     val requiresPlus by viewModel.requiresPlus.collectAsState()
 
-    var section by remember { mutableStateOf(AiAssistantSection.CHAT) }
-    var chatMode by remember { mutableStateOf(AiChatMode.GENERAL) }
+    var section by rememberSaveable { mutableStateOf(AiAssistantSection.CHAT) }
+    var chatMode by rememberSaveable { mutableStateOf(AiChatMode.GENERAL) }
 
     LaunchedEffect(Unit) {
         viewModel.loadAnimals()
@@ -301,7 +303,20 @@ private fun ChatSection(
                 placeholder = { Text(if (locked) "Upgrade to Plus to chat" else "Ask about your herd...") },
                 modifier = Modifier.weight(1f),
                 maxLines = 3,
-                enabled = !isChatLoading && !locked
+                enabled = !isChatLoading && !locked,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Black,
+                    disabledTextColor = Color.Green,
+                    cursorColor = Color.ForestGreen,
+                    focusedContainerColor = Color.White,
+                    unfocusedContainerColor = Color.White,
+                    disabledContainerColor = Color.White,
+                    focusedBorderColor = Color.ForestGreen,
+                    unfocusedBorderColor = Color.Green,
+                    focusedPlaceholderColor = Color.Green,
+                    unfocusedPlaceholderColor = Color.Green
+                )
             )
 
             IconButton(
