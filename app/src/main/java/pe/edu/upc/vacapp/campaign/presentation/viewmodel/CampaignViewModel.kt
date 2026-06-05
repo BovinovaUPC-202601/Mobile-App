@@ -18,12 +18,28 @@ class CampaignViewModel(
     private val _barns = MutableStateFlow<List<Barn>>(emptyList())
     val barn: StateFlow<List<Barn>> = _barns
 
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading
+
+    private val _addSuccess = MutableStateFlow(false)
+    val addSuccess: StateFlow<Boolean> = _addSuccess
     fun addCanpaing(campaign: Campaign) {
         viewModelScope.launch {
-            campaingRepository.addCampaing(campaign)
+            _isLoading.value = true
+            try {
+                campaingRepository.addCampaing(campaign)
+                _addSuccess.value = true
+                getCampaing()
+            } catch (e: Exception) {
+                _addSuccess.value = false
+            } finally {
+                _isLoading.value = false
+            }
         }
     }
-
+    fun resetAddSuccess() {
+        _addSuccess.value = false
+    }
     fun getCampaing() {
         viewModelScope.launch {
 

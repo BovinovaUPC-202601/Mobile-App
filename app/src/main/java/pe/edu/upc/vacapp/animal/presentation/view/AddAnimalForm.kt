@@ -57,6 +57,7 @@ import java.io.File
 import java.util.Calendar
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.CircularProgressIndicator
 
 //@Preview(showBackground = true)
 @Composable
@@ -122,6 +123,7 @@ fun AddAnimalCard(
     val newAnimal = remember { mutableStateOf(Animal()) }
     val barns = viewmodel.barn.collectAsState()
     val addSuccess = viewmodel.addAnimalSuccess.collectAsState().value
+    val isLoading = viewmodel.isLoading.collectAsState()
 
     // Estado local para los errores de validación del formulario
     val localValidationError = remember { mutableStateOf("") }
@@ -337,7 +339,8 @@ fun AddAnimalCard(
                         viewmodel.clearErrorMessage()
                         localValidationError.value = ""
                         goHome()
-                    }
+                    },
+                    enabled = !isLoading.value
                 ) {
                     Icon(
                         painterResource(R.drawable.x_circle),
@@ -364,13 +367,22 @@ fun AddAnimalCard(
                         } else {
                             viewmodel.addAnimal(animal)
                         }
-                    }
+                    },
+                    enabled = !isLoading.value
                 ) {
-                    Icon(
-                        painterResource(R.drawable.check_circle), null,
-                        modifier = Modifier.size(45.dp),
-                        tint = Color.Black
-                    )
+                    if (isLoading.value) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(35.dp),
+                            color = Color.Black,
+                            strokeWidth = 3.dp
+                        )
+                    } else {
+                        Icon(
+                            painterResource(R.drawable.check_circle), null,
+                            modifier = Modifier.size(45.dp),
+                            tint = Color.Black
+                        )
+                    }
                 }
             }
         }
