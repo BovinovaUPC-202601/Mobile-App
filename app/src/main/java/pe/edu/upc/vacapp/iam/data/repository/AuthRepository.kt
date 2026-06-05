@@ -7,6 +7,7 @@ import pe.edu.upc.vacapp.iam.data.model.RegisterRequest
 import pe.edu.upc.vacapp.iam.data.remote.AuthService
 import pe.edu.upc.vacapp.iam.domain.model.User
 import pe.edu.upc.vacapp.shared.data.local.JwtStorage
+import pe.edu.upc.vacapp.shared.data.local.UserStorage
 
 class AuthRepository(
     private val authService: AuthService
@@ -43,6 +44,8 @@ class AuthRepository(
 
     suspend fun logout(): Boolean = withContext(Dispatchers.IO) {
         JwtStorage.clearToken()
+        // Reset notification bookkeeping so the next user re-primes from scratch.
+        UserStorage.clear()
 
         return@withContext true
     }
