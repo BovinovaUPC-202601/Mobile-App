@@ -24,7 +24,11 @@ class AnimalRepository(
             req.birthDate.toRequestBody(),
             req.breed.toRequestBody(),
             req.stableId.toRequestBody(),
-            req.image.toMultipartPart("FileData")
+            req.minTemperature.toRequestBody(),
+            req.maxTemperature.toRequestBody(),
+            req.minHeartRate.toRequestBody(),
+            req.maxHeartRate.toRequestBody(),
+            req.image.toMultipartPart("FileData"),
         )
 
         if (res.isSuccessful) {
