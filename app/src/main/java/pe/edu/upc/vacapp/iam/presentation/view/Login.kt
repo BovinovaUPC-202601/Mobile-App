@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -56,6 +57,7 @@ fun Login(
     val errorMessage = viewmodel.errorMessage.collectAsState()
     val showPassword = remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
+    val isLoading = viewmodel.isLoading.collectAsState()
 
     LaunchedEffect(loginSuccess.value) {
         if (loginSuccess.value == true) {
@@ -272,17 +274,27 @@ fun Login(
                     .width(210.dp)
                     .height(55.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.ForestGreen
+                    containerColor = Color.ForestGreen,
+                    disabledContainerColor = Color.ForestGreen.copy(alpha = 0.6f)
                 ),
+                enabled = !isLoading.value,
                 shape = RoundedCornerShape(25.dp),
                 onClick = { viewmodel.login() }
             ) {
-                Text(
-                    "Sign In",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp,
-                    color = Color.White
-                )
+                if (isLoading.value) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(28.dp),
+                        color = Color.White,
+                        strokeWidth = 3.dp
+                    )
+                } else {
+                    Text(
+                        "Sign In",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp,
+                        color = Color.White
+                    )
+                }
             }
 
             TextButton(onClick = {

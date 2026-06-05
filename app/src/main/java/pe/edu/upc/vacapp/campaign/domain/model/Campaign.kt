@@ -7,5 +7,4 @@ data class Campaign(
     val description: String = "",
     val startDate: LocalDate = LocalDate.now(),
     val endDate:  LocalDate = LocalDate.now(),
-    val barnId: Int = 0,
 )

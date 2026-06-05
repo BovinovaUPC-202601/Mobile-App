@@ -10,12 +10,14 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -30,6 +32,7 @@ import pe.edu.upc.vacapp.R
 import pe.edu.upc.vacapp.barn.domain.model.Barn
 import pe.edu.upc.vacapp.barn.presentation.viewmodel.BarnViewModel
 import pe.edu.upc.vacapp.ui.theme.Color
+import androidx.compose.runtime.collectAsState
 
 @Composable
 
@@ -38,6 +41,28 @@ fun FormBarnView(
     goHome:() ->Unit
 ) {
     val barn = remember { mutableStateOf(Barn()) }
+    val isLoading = viewModel.isLoading.collectAsState()
+    val saveSuccess = viewModel.saveSuccess.collectAsState()
+    val colors = TextFieldDefaults.colors(
+        focusedContainerColor = Color.Transparent,
+        unfocusedContainerColor = Color.Transparent,
+        disabledContainerColor = Color.Transparent,
+        errorContainerColor = Color.Transparent,
+        focusedIndicatorColor = Color.Black,
+        unfocusedIndicatorColor = Color.Black,
+        disabledIndicatorColor = Color.Black,
+        focusedLabelColor = Color.Black,
+        unfocusedLabelColor = Color.Black,
+        disabledLabelColor = Color.Black,
+        disabledTextColor = Color.Black
+    )
+    LaunchedEffect(saveSuccess.value) {
+        if (saveSuccess.value == true) {
+            goHome()
+            viewModel.resetSaveSuccess()
+        }
+    }
+
     Card(
         modifier = Modifier
             .width(356.dp)
@@ -56,12 +81,7 @@ fun FormBarnView(
         ) {
 
             TextField(
-                colors = TextFieldDefaults.colors(
-                    unfocusedContainerColor = Color.Transparent,
-                    focusedContainerColor = Color.Transparent,
-                    focusedIndicatorColor = Color.Black,
-                    unfocusedIndicatorColor = Color.Black
-                ),
+                colors = colors,
                 value = barn.value.name,
                 onValueChange = {
                     barn.value = barn.value.copy(name = it)
@@ -80,12 +100,7 @@ fun FormBarnView(
 
 
             TextField(
-                colors = TextFieldDefaults.colors(
-                    unfocusedContainerColor = Color.Transparent,
-                    focusedContainerColor = Color.Transparent,
-                    focusedIndicatorColor = Color.Black,
-                    unfocusedIndicatorColor = Color.Black
-                ),
+                colors = colors,
                 value = barn.value.limit,
                 onValueChange = {
                     barn.value = barn.value.copy(limit = it)
@@ -109,7 +124,8 @@ fun FormBarnView(
                 horizontalArrangement = Arrangement.End
             ) {
                 IconButton(
-                    onClick = { goHome() }
+                    onClick = { goHome() },
+                    enabled = !isLoading.value
                 ) {
                     Icon(
                         painterResource(R.drawable.x_circle),
@@ -118,12 +134,21 @@ fun FormBarnView(
                     )
                 }
                 IconButton(
-                    onClick = { viewModel.addBarn(barn.value) }
+                    onClick = { viewModel.addBarn(barn.value) },
+                    enabled = !isLoading.value
                 ) {
-                    Icon(
-                        painterResource(R.drawable.check_circle), null,
-                        modifier = Modifier.size(45.dp)
-                    )
+                    if (isLoading.value) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(35.dp),
+                            color = Color.Black,
+                            strokeWidth = 3.dp
+                        )
+                    } else {
+                        Icon(
+                            painterResource(R.drawable.check_circle), null,
+                            modifier = Modifier.size(45.dp)
+                        )
+                    }
                 }
             }
 
