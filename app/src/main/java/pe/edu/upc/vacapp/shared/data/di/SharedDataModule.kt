@@ -16,6 +16,7 @@ import pe.edu.upc.vacapp.shared.data.remote.AuthInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.lang.reflect.Type
+import java.util.concurrent.TimeUnit
 import java.util.Locale
 
 object SharedDataModule {
@@ -27,6 +28,7 @@ object SharedDataModule {
         if (retrofitInstance == null) {
             val okHttpClient = OkHttpClient.Builder()
                 .addInterceptor(AuthInterceptor())
+                .readTimeout(1, TimeUnit.MINUTES)
                 .build()
 
             val customGson = GsonBuilder()

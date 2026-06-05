@@ -11,7 +11,7 @@ import pe.edu.upc.vacapp.animal.domain.model.Animal
 import pe.edu.upc.vacapp.barn.domain.model.Barn
 import java.io.File
 
-class AnimalRepository(
+open class AnimalRepository(
     private val animalService: AnimalService
 ) {
     suspend fun addAnimal(animal: Animal) = withContext(Dispatchers.IO) {
@@ -39,7 +39,7 @@ class AnimalRepository(
         }
     }
 
-    suspend fun getAllAnimals(): List<Animal> = withContext(Dispatchers.IO) {
+    open suspend fun getAllAnimals(): List<Animal> = withContext(Dispatchers.IO) {
         val res = animalService.getAllAnimals()
 
         if (res.isSuccessful) {

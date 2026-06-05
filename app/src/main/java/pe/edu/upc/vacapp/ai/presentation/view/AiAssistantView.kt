@@ -31,7 +31,8 @@ import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Pets
 import androidx.compose.material.icons.filled.PhotoLibrary
-import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.WorkspacePremium
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -98,6 +99,7 @@ fun AiAssistantView(
     val isChatLoading by viewModel.isChatLoading.collectAsState()
     val isAnalysisLoading by viewModel.isAnalysisLoading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
+    val requiresPlus by viewModel.requiresPlus.collectAsState()
 
     var section by remember { mutableStateOf(AiAssistantSection.CHAT) }
     var chatMode by remember { mutableStateOf(AiChatMode.GENERAL) }
@@ -115,11 +117,28 @@ fun AiAssistantView(
         verticalArrangement = Arrangement.spacedBy(14.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Filled.AutoAwesome,
+                contentDescription = null,
+                tint = Color.ForestGreen,
+                modifier = Modifier.size(30.dp)
+            )
+            Text(
+                text = "AI Assistant",
+                fontWeight = FontWeight.Bold,
+                fontSize = 34.sp,
+                color = Color.ForestGreen,
+                textAlign = TextAlign.Center
+            )
+        }
         Text(
-            text = "AI Assistant",
-            fontWeight = FontWeight.Bold,
-            fontSize = 34.sp,
-            color = Color.ForestGreen,
+            text = "Chat and visual health checks for your herd",
+            fontSize = 13.sp,
+            color = Color.Green,
             textAlign = TextAlign.Center
         )
 
@@ -141,7 +160,9 @@ fun AiAssistantView(
             )
         }
 
-        if (errorMessage != null) {
+        if (requiresPlus) {
+            PlusRequiredCard()
+        } else if (errorMessage != null) {
             ErrorCard(
                 message = errorMessage.orEmpty(),
                 onDismiss = { viewModel.clearErrorMessage() }
@@ -157,6 +178,7 @@ fun AiAssistantView(
                 bovineMessages = bovineMessages,
                 isLoadingAnimals = isLoadingAnimals,
                 isChatLoading = isChatLoading,
+                locked = requiresPlus,
                 onChatModeChange = { chatMode = it },
                 onBovineSelected = viewModel::selectBovine,
                 onSend = { viewModel.sendMessage(chatMode, it) }
@@ -169,6 +191,7 @@ fun AiAssistantView(
                 isAnalysisLoading = isAnalysisLoading,
                 analysisResult = analysisResult,
                 analysisHistory = analysisHistory,
+                locked = requiresPlus,
                 onBovineSelected = viewModel::selectBovine,
                 onAnalyzePhoto = viewModel::analyzePhoto
             )
@@ -185,6 +208,7 @@ private fun ChatSection(
     bovineMessages: List<AiChatMessage>,
     isLoadingAnimals: Boolean,
     isChatLoading: Boolean,
+    locked: Boolean,
     onChatModeChange: (AiChatMode) -> Unit,
     onBovineSelected: (Int) -> Unit,
     onSend: (String) -> Unit
@@ -274,10 +298,10 @@ private fun ChatSection(
             OutlinedTextField(
                 value = input,
                 onValueChange = { input = it },
-                placeholder = { Text("Ask about your herd...") },
+                placeholder = { Text(if (locked) "Upgrade to Plus to chat" else "Ask about your herd...") },
                 modifier = Modifier.weight(1f),
                 maxLines = 3,
-                enabled = !isChatLoading
+                enabled = !isChatLoading && !locked
             )
 
             IconButton(
@@ -286,10 +310,10 @@ private fun ChatSection(
                     input = ""
                     onSend(message)
                 },
-                enabled = input.isNotBlank() && !isChatLoading
+                enabled = input.isNotBlank() && !isChatLoading && !locked
             ) {
                 Icon(
-                    imageVector = Icons.Filled.Send,
+                    imageVector = Icons.AutoMirrored.Filled.Send,
                     contentDescription = "Send message",
                     tint = Color.ForestGreen
                 )
@@ -306,6 +330,7 @@ private fun PhotoAnalysisSection(
     isAnalysisLoading: Boolean,
     analysisResult: AnalysisResultResponse?,
     analysisHistory: List<AiAnalysisHistoryItem>,
+    locked: Boolean,
     onBovineSelected: (Int) -> Unit,
     onAnalyzePhoto: (String) -> Unit
 ) {
@@ -378,7 +403,7 @@ private fun PhotoAnalysisSection(
 
         Button(
             onClick = { onAnalyzePhoto(imageBase64) },
-            enabled = !isAnalysisLoading && imageBase64.isNotBlank(),
+            enabled = !isAnalysisLoading && imageBase64.isNotBlank() && !locked,
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(8.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color.ForestGreen)
@@ -745,6 +770,42 @@ private fun UrgencyBadge(urgency: String) {
             fontSize = 11.sp,
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
         )
+    }
+}
+
+@Composable
+private fun PlusRequiredCard() {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.AlmondCream)
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Filled.WorkspacePremium,
+                contentDescription = null,
+                tint = androidx.compose.ui.graphics.Color(0xFFB7791F),
+                modifier = Modifier.size(40.dp)
+            )
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(
+                    text = "Plus plan required",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
+                    color = Color.Black
+                )
+                Text(
+                    text = "The AI Assistant (chat and photo analysis) is available on the Plus plan. " +
+                        "Activate Plus to unlock it.",
+                    fontSize = 13.sp,
+                    color = Color.Black
+                )
+            }
+        }
     }
 }
 
