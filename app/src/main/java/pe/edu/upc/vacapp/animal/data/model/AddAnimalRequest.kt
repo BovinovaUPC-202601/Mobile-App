@@ -12,7 +12,11 @@ data class AddAnimalRequest(
     val birthDate: String,
     val breed: String,
     val stableId: Int,
-    val image: File
+    val image: File,
+    val minTemperature: Double,
+    val maxTemperature: Double,
+    val minHeartRate: Int,
+    val maxHeartRate: Int
 ) {
     companion object {
         fun fromAnimal(animal: Animal): AddAnimalRequest {
@@ -20,7 +24,7 @@ data class AddAnimalRequest(
                 ?: throw IllegalArgumentException("Animal must have a local image file to upload")
 
             val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
-            val formatedDate = LocalDate.parse(animal.birthDate,dateFormatter)
+            val formatedDate = LocalDate.parse(animal.birthDate, dateFormatter)
 
             return AddAnimalRequest(
                 animal.name,
@@ -28,7 +32,11 @@ data class AddAnimalRequest(
                 formatedDate.toString(),
                 animal.breed,
                 animal.barnId,
-                file
+                file,
+                animal.minTemperature,
+                animal.maxTemperature,
+                animal.minHeartRate,
+                animal.maxHeartRate
             )
 
         }

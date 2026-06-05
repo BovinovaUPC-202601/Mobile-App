@@ -9,5 +9,9 @@ data class Animal(
     val barnId: Int = 0,
     val barnName: String = "",
     val image: AnimalImage? = null,
-    val isMale: Boolean = true
+    val isMale: Boolean = true,
+    val minTemperature: Double = 38.0,
+    val maxTemperature: Double = 39.3,
+    val minHeartRate: Int = 40,
+    val maxHeartRate: Int = 80
 )

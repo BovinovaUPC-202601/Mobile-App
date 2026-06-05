@@ -15,7 +15,11 @@ data class AnimalResponse(
     val breed: String,
     val location: String?,
     val bovineImg: String?,
-    val stableId: Int
+    val stableId: Int,
+    val minTemperature: Double,
+    val maxTemperature: Double,
+    val minHeartRate: Int,
+    val maxHeartRate: Int
 ) {
     @SuppressLint("DefaultLocale")
     fun toAnimal(): Animal {
@@ -23,7 +27,10 @@ data class AnimalResponse(
             LocalDate.parse(birthDate, DateTimeFormatter.ofPattern("yyyy-MM-dd"))
         } catch (e: Exception) {
             try {
-                LocalDateTime.parse(birthDate, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS"))
+                LocalDateTime.parse(
+                    birthDate,
+                    DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS")
+                )
                     .toLocalDate()
             } catch (e: Exception) {
                 LocalDateTime.parse(birthDate, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"))
@@ -46,13 +53,15 @@ data class AnimalResponse(
             id = id,
             name = name,
             breed = breed,
-            //TODO: Implement weight calculation or fetch from API (falta en el backend)
-            //weight = ,
             age = age,
             birthDate = formattedDate,
             barnId = stableId,
             image = AnimalImage.FromUrl(bovineImg.orEmpty()),
-            isMale = gender == "male"
+            isMale = gender == "male",
+            minTemperature = minTemperature,
+            maxTemperature = maxTemperature,
+            minHeartRate = minHeartRate,
+            maxHeartRate = maxHeartRate
         )
     }
 }
