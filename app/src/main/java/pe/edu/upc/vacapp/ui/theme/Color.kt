@@ -35,6 +35,14 @@ val Error40 = Color(0xFFD04A3A)
 val Error80 = Color(0xFFFFB4A8)
 val ErrorContainerLight = Color(0xFFFFD9D2)
 
+// Accent · Sand (warm, paired with Emerald on dashboard cards)
+val Sand40 = Color(0xFFB17A2B)
+val Sand90 = Color(0xFFFFE9C8)
+
+// Accent · Sky (cool, paired with Emerald on dashboard cards)
+val Sky40 = Color(0xFF3A82B0)
+val Sky90 = Color(0xFFCFE6F2)
+
 // Decorative gradients
 val HeroGradientStart = Color(0xFFB8E4CB)
 val HeroGradientMid = Color(0xFFDCF1DE)

@@ -197,7 +197,7 @@ private fun FormCard(
 
             AuthTextField(
                 value = email,
-                onValueChange = onEmailChange,
+                onValueChange = { if (!it.contains(' ')) onEmailChange(it) },
                 label = "Email",
                 leadingIcon = painterResource(id = R.drawable.envelope_simple),
                 keyboardType = KeyboardType.Email,

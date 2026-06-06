@@ -30,7 +30,7 @@ class MainActivity : ComponentActivity() {
         // with a deliberate dark frame at top and bottom.
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.light(AndroidColor.BLACK, AndroidColor.BLACK),
-            navigationBarStyle = SystemBarStyle.light(AndroidColor.BLACK, AndroidColor.BLACK)
+            navigationBarStyle = SystemBarStyle.dark(AndroidColor.BLACK)
         )
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {

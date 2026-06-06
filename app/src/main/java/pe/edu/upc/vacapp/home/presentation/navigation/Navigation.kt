@@ -146,7 +146,7 @@ fun Navigation(
         ) { padding ->
             NavHost(
                 navController,
-                startDestination = "home", modifier = Modifier.padding(padding)
+                startDestination = "home", modifier = Modifier.padding(top = padding.calculateTopPadding())
             ) {
                 composable("home") {
                     homeViewModel.getUserInfo()
