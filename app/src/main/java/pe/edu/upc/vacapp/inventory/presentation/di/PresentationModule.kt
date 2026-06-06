@@ -4,7 +4,9 @@ import pe.edu.upc.vacapp.inventory.data.di.DataModule.getInventoryRepository
 import pe.edu.upc.vacapp.inventory.presentation.viewmodel.InventoryViewModel
 
 object PresentationModule {
-    fun getInventoryViewModel(): InventoryViewModel {
-        return InventoryViewModel(getInventoryRepository())
+    private val inventoryViewModelInstance: InventoryViewModel by lazy {
+        InventoryViewModel(getInventoryRepository())
     }
+
+    fun getInventoryViewModel(): InventoryViewModel = inventoryViewModelInstance
 }

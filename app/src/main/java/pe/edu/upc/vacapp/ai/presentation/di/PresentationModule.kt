@@ -5,7 +5,9 @@ import pe.edu.upc.vacapp.ai.presentation.viewmodel.AiAssistantViewModel
 import pe.edu.upc.vacapp.animal.data.di.DataModule.getAnimalRepository
 
 object PresentationModule {
-    fun getAiAssistantViewModel(): AiAssistantViewModel {
-        return AiAssistantViewModel(getAiAssistantRepository(), getAnimalRepository())
+    private val aiAssistantViewModelInstance: AiAssistantViewModel by lazy {
+        AiAssistantViewModel(getAiAssistantRepository(), getAnimalRepository())
     }
+
+    fun getAiAssistantViewModel(): AiAssistantViewModel = aiAssistantViewModelInstance
 }
