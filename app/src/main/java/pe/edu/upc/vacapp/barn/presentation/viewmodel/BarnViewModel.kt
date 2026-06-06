@@ -14,10 +14,24 @@ class BarnViewModel(
 ) : ViewModel() {
     private val _barns = MutableStateFlow<List<Barn>>(emptyList())
     val barn: StateFlow<List<Barn>> = _barns
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading
+
+    private val _saveSuccess = MutableStateFlow<Boolean?>(null)
+    val saveSuccess: StateFlow<Boolean?> = _saveSuccess
 
     fun addBarn(barn: Barn) {
         viewModelScope.launch {
-            barnRepository.addBarn(barn)
+            _isLoading.value = true
+            try {
+                barnRepository.addBarn(barn)
+                _saveSuccess.value = true
+                getBarns()
+            } catch (e: Exception) {
+                _saveSuccess.value = false
+            } finally {
+                _isLoading.value = false
+            }
         }
     }
 
@@ -25,5 +39,8 @@ class BarnViewModel(
         viewModelScope.launch {
             _barns.value = barnRepository.getBarns()
         }
+    }
+    fun resetSaveSuccess() {
+        _saveSuccess.value = null
     }
 }

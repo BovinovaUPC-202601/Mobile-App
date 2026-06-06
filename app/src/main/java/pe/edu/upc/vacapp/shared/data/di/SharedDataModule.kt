@@ -6,6 +6,9 @@ import com.google.gson.JsonDeserializationContext
 import com.google.gson.JsonDeserializer
 import com.google.gson.JsonElement
 import com.google.gson.JsonParseException
+import com.google.gson.JsonPrimitive
+import com.google.gson.JsonSerializationContext
+import com.google.gson.JsonSerializer
 import okhttp3.OkHttpClient
 import org.threeten.bp.LocalDate
 import org.threeten.bp.format.DateTimeFormatter
@@ -57,7 +60,15 @@ object SharedDataModule {
 }
 
 
-class LocalDateAdapter : JsonDeserializer<LocalDate> {
+class LocalDateAdapter : JsonSerializer<LocalDate>, JsonDeserializer<LocalDate> {
+    override fun serialize(
+        src: LocalDate,
+        typeOfSrc: Type,
+        context: JsonSerializationContext
+    ): JsonElement {
+        return JsonPrimitive(src.format(DateTimeFormatter.ISO_LOCAL_DATE))
+    }
+
     override fun deserialize(
         json: JsonElement,
         typeOfT: Type,

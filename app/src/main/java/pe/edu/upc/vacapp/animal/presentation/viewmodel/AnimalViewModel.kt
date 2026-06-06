@@ -26,7 +26,8 @@ class AnimalViewModel(
     //
     private val _addAnimalSuccess = MutableStateFlow(false)
     val addAnimalSuccess: StateFlow<Boolean> = _addAnimalSuccess
-
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading
 
     /* Methods */
     //
@@ -36,13 +37,16 @@ class AnimalViewModel(
     //
     fun addAnimal(animal: Animal) {
         viewModelScope.launch {
+            _isLoading.value = true
             try {
                 animalRepository.addAnimal(animal)
-                _addAnimalSuccess.value = true  // <-- ✅ Success
+                _addAnimalSuccess.value = true  // <-- Success
             } catch (e: IllegalArgumentException) {
                 _errorMessage.value = e.message ?: "Error adding animal"
             } catch (e: Exception) {
                 _errorMessage.value = "Unknown error when adding the animal"
+            } finally {
+                _isLoading.value = false
             }
         }
     }

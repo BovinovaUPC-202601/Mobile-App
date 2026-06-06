@@ -14,6 +14,8 @@ class AuthViewModel(
 ) : ViewModel() {
     private val _user = MutableStateFlow(User())
     val user: StateFlow<User> = _user
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading
 
     private val _loginSuccess = MutableStateFlow<Boolean?>(null)
     val loginSuccess: StateFlow<Boolean?> = _loginSuccess
@@ -37,13 +39,6 @@ class AuthViewModel(
         _user.value = User()
     }
 
-    /*
-    fun login() {
-        viewModelScope.launch {
-            _loginSuccess.value = authRepository.login(_user.value)
-        }
-    }*/
-
     fun login() {
         val email = _user.value.email
         val password = _user.value.password
@@ -59,12 +54,16 @@ class AuthViewModel(
 
         viewModelScope.launch {
             try {
+                _isLoading.value = true
                 _loginSuccess.value = authRepository.login(_user.value)
                 if (_loginSuccess.value != true) {
                     _errorMessage.value = "Email o contraseña incorrectos."
                 }
             } catch (e: Exception) {
                 _errorMessage.value = "Error de autenticación: ${e.message}"
+            }
+            finally {
+                _isLoading.value = false
             }
         }
     }
@@ -78,7 +77,14 @@ class AuthViewModel(
 
     fun register() {
         viewModelScope.launch {
-            _loginSuccess.value = authRepository.register(_user.value)
+            _isLoading.value = true
+            try {
+                _loginSuccess.value = authRepository.register(_user.value)
+            } catch (e: Exception) {
+                _errorMessage.value = "Error al registrar: ${e.message}"
+            } finally {
+                _isLoading.value = false
+            }
         }
     }
 
