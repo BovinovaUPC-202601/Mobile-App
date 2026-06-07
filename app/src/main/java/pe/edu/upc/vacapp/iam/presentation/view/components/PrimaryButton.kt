@@ -1,12 +1,7 @@
 package pe.edu.upc.vacapp.iam.presentation.view.components
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -20,7 +15,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -114,19 +108,11 @@ fun PrimaryButton(
             label = "primary-button-content"
         ) { loading ->
             if (loading) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    RotatingDot(color = Cream95)
-                    Text(
-                        text = "Signing in",
-                        color = Cream95,
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    )
-                }
+                CircularProgressIndicator(
+                    modifier = Modifier.size(22.dp),
+                    color = Cream95,
+                    strokeWidth = 2.5.dp
+                )
             } else {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -153,41 +139,4 @@ fun PrimaryButton(
     }
 }
 
-/**
- * A small accent that rotates 360° while the button is in the loading state.
- * Drawn as a partial arc using a [CircularProgressIndicator] with a fixed stroke,
- * so it reads as a custom loading mark rather than a system spinner.
- */
-@Composable
-private fun RotatingDot(color: Color) {
-    val transition = rememberInfiniteTransition(label = "primary-button-spinner")
-    val rotation by transition.animateFloat(
-        initialValue = 0f,
-        targetValue = 360f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 900, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "primary-button-spinner-rotation"
-    )
-    Box(
-        modifier = Modifier
-            .size(18.dp)
-            .scale(1f),
-        contentAlignment = Alignment.Center
-    ) {
-        CircularProgressIndicator(
-            modifier = Modifier
-                .size(18.dp)
-                .scale(1f),
-            color = color,
-            strokeWidth = 2.2.dp,
-            trackColor = color.copy(alpha = 0.18f)
-        )
-        // The rotation above is provided so that, if you swap the indicator
-        // for a custom canvas, the value is already wired in. The Material
-        // indicator is intentionally a clean partial arc that reads as
-        // "loading" without competing with the label.
-        @Suppress("UNUSED_EXPRESSION") rotation
-    }
-}
+

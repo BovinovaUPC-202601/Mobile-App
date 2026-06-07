@@ -221,10 +221,16 @@ fun Navigation(
                 composable("animals") {
                     val viewmodel = getAnimalViewModel()
                     viewmodel.getAllAnimals()
-                    AnimalCardList(viewmodel) {
-                        selectedAnimal.value = it
-                        navController.navigate("animal-details")
-                    }
+                    AnimalCardList(
+                        viewmodel = viewmodel,
+                        onTap = {
+                            selectedAnimal.value = it
+                            navController.navigate("animal-details")
+                        },
+                        onTapAddAnimal = {
+                            navController.navigate("add-animal")
+                        }
+                    )
                 }
 
                 composable("inventory") {
