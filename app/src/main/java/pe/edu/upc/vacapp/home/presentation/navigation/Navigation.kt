@@ -19,6 +19,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.activity.compose.BackHandler
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -113,6 +114,10 @@ fun Navigation(
         }
     }
 
+    BackHandler(drawerState.isOpen) {
+        scope.launch { drawerState.close() }
+    }
+
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
@@ -163,7 +168,10 @@ fun Navigation(
                 composable("campaign") {
                     val viewmodel = getCampaignViewModel()
                     viewmodel.getCampaing()
-                    CampaignView(viewmodel)
+                    CampaignView(
+                        viewModel = viewmodel,
+                        onTapAddCampaign = { navController.navigate("add-campaign") }
+                    )
                 }
 
                 composable("add-campaign") {
