@@ -34,8 +34,10 @@ import pe.edu.upc.vacapp.animal.presentation.di.PresentationModule.getAnimalView
 import pe.edu.upc.vacapp.animal.presentation.view.AddAnimalForm
 import pe.edu.upc.vacapp.animal.presentation.view.AnimalCardList
 import pe.edu.upc.vacapp.animal.presentation.view.AnimalDetails
+import pe.edu.upc.vacapp.barn.domain.model.Barn
 import pe.edu.upc.vacapp.barn.presentation.di.PresentationModel.getBarnViewModel
 import pe.edu.upc.vacapp.barn.presentation.view.AddBarnView
+import pe.edu.upc.vacapp.barn.presentation.view.BarnDetailsView
 import pe.edu.upc.vacapp.barn.presentation.view.BarnView
 import pe.edu.upc.vacapp.campaign.presentation.di.PresentacionModel.getCampaignViewModel
 import pe.edu.upc.vacapp.campaign.presentation.view.CampaignView
@@ -77,6 +79,7 @@ private fun pageTitleFor(route: String?): String? = when (route) {
     "add-campaign", "add-barn", "add-animal", "add-inventory" -> "Add"
     "animal-details" -> "Animal details"
     "inventory-details" -> "Inventory details"
+    "barn-details" -> "Barns"
     else -> null
 }
 
@@ -90,6 +93,7 @@ fun Navigation(
     val scope = rememberCoroutineScope()
     val selectedAnimal = remember { mutableStateOf<Animal?>(null) }
     val selectedInventory = remember { mutableStateOf<Inventory?>(null) }
+    val selectedBarn = remember { mutableStateOf<Barn?>(null) }
     val homeViewModel = getHomeViewModel()
     val monitoringViewModel = getMonitoringViewModel()
     val alertViewModel = getAlertViewModel()
@@ -106,7 +110,6 @@ fun Navigation(
                 saveState = true
             }
             launchSingleTop = true
-            restoreState = true
         }
     }
 
@@ -174,15 +177,44 @@ fun Navigation(
 
                 composable("barn") {
                     val viewmodel = getBarnViewModel()
+                    val animalViewmodel = getAnimalViewModel()
                     viewmodel.getBarns()
-                    BarnView(viewmodel)
+                    animalViewmodel.getAllAnimals()
+                    val animals by animalViewmodel.animals.collectAsState()
+                    BarnView(
+                        viewModel = viewmodel,
+                        animals = animals,
+                        onTapAddBarn = { navController.navigate("add-barn") },
+                        onBarnClick = { barn ->
+                            selectedBarn.value = barn
+                            navController.navigate("barn-details")
+                        }
+                    )
+                }
+
+                composable("barn-details") {
+                    val animalViewmodel = getAnimalViewModel()
+                    animalViewmodel.getAllAnimals()
+                    val barn = selectedBarn.value
+                    if (barn == null) {
+                        navigateTo("barn")
+                    } else {
+                        BarnDetailsView(
+                            barn = barn,
+                            animals = animalViewmodel.animals.collectAsState().value,
+                            onAnimalClick = { animal ->
+                                selectedAnimal.value = animal
+                                navController.navigate("animal-details")
+                            }
+                        )
+                    }
                 }
 
                 composable("add-barn") {
                     val viewmodel = getBarnViewModel()
                     AddBarnView(
                         viewmodel,
-                        goHome = { navigateTo("home") }
+                        goHome = { navController.popBackStack() }
                     )
                 }
 
