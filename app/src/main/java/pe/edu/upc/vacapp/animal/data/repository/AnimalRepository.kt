@@ -8,6 +8,7 @@ import pe.edu.upc.vacapp.animal.data.model.toMultipartPart
 import pe.edu.upc.vacapp.animal.data.model.toRequestBody
 import pe.edu.upc.vacapp.animal.data.remote.AnimalService
 import pe.edu.upc.vacapp.animal.domain.model.Animal
+import pe.edu.upc.vacapp.animal.domain.model.Breed
 import pe.edu.upc.vacapp.barn.domain.model.Barn
 import java.io.File
 
@@ -65,6 +66,18 @@ open class AnimalRepository(
         if (response.isSuccessful) {
             return@withContext response.body()?.map {
                 it.toBarn()
+            } ?: emptyList()
+        }
+
+        return@withContext emptyList()
+    }
+
+    suspend fun getBreeds(): List<Breed> = withContext(Dispatchers.IO){
+        val response = animalService.getBreeds()
+
+        if (response.isSuccessful) {
+            return@withContext response.body()?.map {
+                it.toBreed()
             } ?: emptyList()
         }
 

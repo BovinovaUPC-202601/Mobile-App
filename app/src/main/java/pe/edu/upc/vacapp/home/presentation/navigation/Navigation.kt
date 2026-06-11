@@ -266,6 +266,7 @@ fun Navigation(
                 composable("add-animal") {
                     val viewmodel = getAnimalViewModel()
                     viewmodel.getBarns()
+                    viewmodel.getBreeds()
                     AddAnimalForm(
                         viewmodel,
                         goHome = { navigateTo("home") },

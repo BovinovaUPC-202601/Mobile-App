@@ -59,6 +59,7 @@ import org.threeten.bp.LocalDate
 import org.threeten.bp.format.DateTimeFormatter
 import pe.edu.upc.vacapp.animal.domain.model.Animal
 import pe.edu.upc.vacapp.animal.domain.model.AnimalImage
+import pe.edu.upc.vacapp.animal.domain.model.Breed
 import pe.edu.upc.vacapp.animal.presentation.viewmodel.AnimalViewModel
 import pe.edu.upc.vacapp.barn.domain.model.Barn
 import pe.edu.upc.vacapp.iam.presentation.view.components.AuthTextField
@@ -112,6 +113,7 @@ private fun FormAnimalView(
     val addSuccess by viewmodel.addAnimalSuccess.collectAsState()
     val errorMessage by viewmodel.errorMessage.collectAsState()
     val barns by viewmodel.barn.collectAsState()
+    val breeds by viewmodel.breeds.collectAsState()
 
     var animal by remember { mutableStateOf(Animal()) }
     var imageUri by remember { mutableStateOf<Uri?>(null) }
@@ -255,17 +257,24 @@ private fun FormAnimalView(
                 imeAction = ImeAction.Next
             )
 
-            // Breed + Gender toggle
+            // Breed dropdown + Gender toggle
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                AuthTextField(
-                    value = animal.breed,
-                    onValueChange = { animal = animal.copy(breed = it) },
-                    label = "Breed",
-                    imeAction = ImeAction.Next,
+                BreedDropdown(
+                    breeds = breeds,
+                    selectedBreedName = animal.breed,
+                    onBreedSelected = { breed ->
+                        animal = animal.copy(
+                            breed = breed.name,
+                            minTemperature = breed.minTemperature,
+                            maxTemperature = breed.maxTemperature,
+                            minHeartRate = breed.minHeartRate,
+                            maxHeartRate = breed.maxHeartRate
+                        )
+                    },
                     modifier = Modifier.weight(1f)
                 )
                 GenderToggle(
@@ -567,6 +576,69 @@ private fun BarnDropdown(
                             expanded = false
                         },
                         text = { Text(barn.name) }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun BreedDropdown(
+    breeds: List<Breed>,
+    selectedBreedName: String,
+    onBreedSelected: (Breed) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val selectedBreed = breeds.find { it.name == selectedBreedName }
+
+    Surface(
+        onClick = { expanded = true },
+        modifier = modifier
+            .fillMaxWidth()
+            .height(56.dp),
+        shape = RoundedCornerShape(12.dp),
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
+    ) {
+        Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column {
+                    Text(
+                        text = "Breed",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = selectedBreed?.name ?: "Select breed",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = if (selectedBreed != null) MaterialTheme.colorScheme.onSurface
+                        else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                    )
+                }
+                Icon(
+                    imageVector = Icons.Filled.ArrowDropDown,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                breeds.forEach { breed ->
+                    DropdownMenuItem(
+                        onClick = {
+                            onBreedSelected(breed)
+                            expanded = false
+                        },
+                        text = { Text(breed.name) }
                     )
                 }
             }
