@@ -57,6 +57,7 @@ import pe.edu.upc.vacapp.inventory.presentation.view.InventoryCardList
 import pe.edu.upc.vacapp.inventory.presentation.view.InventoryDetails
 import pe.edu.upc.vacapp.monitoring.presentation.di.PresentationModule.getMonitoringViewModel
 import pe.edu.upc.vacapp.monitoring.presentation.view.MonitoringView
+import pe.edu.upc.vacapp.collars.presentation.di.PresentationModule.getCollarViewModel
 import pe.edu.upc.vacapp.shared.data.local.JwtStorage
 
 private val drawerItems: List<DrawerItem> = listOf(
@@ -256,7 +257,7 @@ fun Navigation(
                 }
 
                 composable("animal-details") {
-                    AnimalDetails(selectedAnimal.value!!)
+                    AnimalDetails(selectedAnimal.value!!, getCollarViewModel())
                 }
 
                 composable("inventory-details") {

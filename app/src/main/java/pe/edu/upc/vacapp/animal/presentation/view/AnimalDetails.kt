@@ -24,6 +24,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import pe.edu.upc.vacapp.collars.presentation.view.CollarSection
+import pe.edu.upc.vacapp.collars.presentation.viewmodel.CollarViewModel
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -42,8 +45,12 @@ import pe.edu.upc.vacapp.ui.theme.Sky90
 
 @Composable
 fun AnimalDetails(
-    animal: Animal
+    animal: Animal,
+    collarViewModel: CollarViewModel? = null
 ) {
+    LaunchedEffect(animal.id) {
+        collarViewModel?.fetchCollars()
+    }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -146,6 +153,10 @@ fun AnimalDetails(
                             label = "Heart rate range",
                             value = "${animal.minHeartRate} – ${animal.maxHeartRate} BPM"
                         )
+                    }
+
+                    collarViewModel?.let { vm ->
+                        CollarSection(bovineId = animal.id, viewModel = vm)
                     }
                 }
             }
