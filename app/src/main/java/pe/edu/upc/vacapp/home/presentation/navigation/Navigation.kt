@@ -16,6 +16,7 @@ import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -257,7 +258,7 @@ fun Navigation(
                 }
 
                 composable("animal-details") {
-                    AnimalDetails(selectedAnimal.value!!, getCollarViewModel())
+                    AnimalDetails(selectedAnimal.value!!, getCollarViewModel(), getAnimalViewModel())
                 }
 
                 composable("inventory-details") {
@@ -285,7 +286,20 @@ fun Navigation(
                 }
 
                 composable("monitoring") {
-                    MonitoringView(monitoringViewModel)
+                    val animalVm = getAnimalViewModel()
+                    val collarVm = getCollarViewModel()
+                    LaunchedEffect(Unit) {
+                        animalVm.getAllAnimals()
+                        collarVm.fetchCollars()
+                    }
+                    val animals by animalVm.animals.collectAsState()
+                    val collars by collarVm.collars.collectAsState()
+                    // Only bovines with a collar stream IoT data.
+                    val collaredIds = collars.map { it.bovineId }.toSet()
+                    val monitorable = animals
+                        .filter { it.id in collaredIds }
+                        .map { it.id to it.name }
+                    MonitoringView(monitoringViewModel, monitorable)
                 }
 
                 composable("alerts") {
