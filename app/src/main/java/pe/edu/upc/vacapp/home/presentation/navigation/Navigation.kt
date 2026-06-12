@@ -9,6 +9,7 @@ import androidx.compose.material.icons.filled.MedicalServices
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Pets
 import androidx.compose.material.icons.filled.Warehouse
+import androidx.compose.material.icons.filled.WorkspacePremium
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
@@ -16,6 +17,7 @@ import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -57,6 +59,8 @@ import pe.edu.upc.vacapp.inventory.presentation.view.InventoryCardList
 import pe.edu.upc.vacapp.inventory.presentation.view.InventoryDetails
 import pe.edu.upc.vacapp.monitoring.presentation.di.PresentationModule.getMonitoringViewModel
 import pe.edu.upc.vacapp.monitoring.presentation.view.MonitoringView
+import pe.edu.upc.vacapp.subscription.presentation.di.PresentationModule.getSubscriptionViewModel
+import pe.edu.upc.vacapp.subscription.presentation.view.SubscriptionView
 import pe.edu.upc.vacapp.shared.data.local.JwtStorage
 
 private val drawerItems: List<DrawerItem> = listOf(
@@ -66,7 +70,8 @@ private val drawerItems: List<DrawerItem> = listOf(
     DrawerItem("barn", "Barns", Icons.Default.Warehouse),
     DrawerItem("monitoring", "Monitoring", Icons.Default.Analytics),
     DrawerItem("alerts", "Alerts", Icons.Default.Notifications),
-    DrawerItem("ai-assistant", "AI Assistant", Icons.Default.AutoAwesome)
+    DrawerItem("ai-assistant", "AI Assistant", Icons.Default.AutoAwesome),
+    DrawerItem("subscription", "Subscription", Icons.Default.WorkspacePremium)
 )
 
 private fun pageTitleFor(route: String?): String? = when (route) {
@@ -77,6 +82,7 @@ private fun pageTitleFor(route: String?): String? = when (route) {
     "monitoring" -> "Monitoring"
     "alerts" -> "Alerts"
     "ai-assistant" -> "AI Assistant"
+    "subscription" -> "Subscription"
     "add-campaign", "add-barn", "add-animal", "add-inventory" -> "Add"
     "animal-details" -> "Animal details"
     "inventory-details" -> "Inventory details"
@@ -289,6 +295,12 @@ fun Navigation(
 
                 composable("alerts") {
                     AlertView(alertViewModel, userInfo.id)
+                }
+
+                composable("subscription") {
+                    val viewmodel = remember { getSubscriptionViewModel() }
+                    LaunchedEffect(Unit) { viewmodel.load() }
+                    SubscriptionView(viewmodel)
                 }
             }
         }
