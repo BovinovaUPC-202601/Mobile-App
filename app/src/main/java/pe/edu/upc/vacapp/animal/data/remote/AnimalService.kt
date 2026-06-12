@@ -4,12 +4,16 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import pe.edu.upc.vacapp.animal.data.model.AnimalResponse
 import pe.edu.upc.vacapp.animal.data.model.BreedResponse
+import pe.edu.upc.vacapp.animal.data.model.UpdateAnimalRequest
 import pe.edu.upc.vacapp.barn.data.model.BarnResponse
 import retrofit2.Response
+import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Multipart
 import retrofit2.http.POST
+import retrofit2.http.PUT
 import retrofit2.http.Part
+import retrofit2.http.Path
 
 interface AnimalService {
     /*
@@ -34,6 +38,12 @@ interface AnimalService {
         @Part("MinHeartRate") minHeartRate: RequestBody,
         @Part("MaxHeartRate") maxHeartRate: RequestBody,
         @Part FileData: MultipartBody.Part,
+    ): Response<AnimalResponse>
+
+    @PUT("bovines/{id}")
+    suspend fun updateAnimal(
+        @Path("id") id: Int,
+        @Body request: UpdateAnimalRequest
     ): Response<AnimalResponse>
 
     @GET("bovines")
