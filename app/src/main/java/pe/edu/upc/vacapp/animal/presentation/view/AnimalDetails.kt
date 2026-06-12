@@ -25,8 +25,19 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.TextButton
+import androidx.compose.ui.text.input.KeyboardType
+import pe.edu.upc.vacapp.animal.presentation.viewmodel.AnimalViewModel
 import pe.edu.upc.vacapp.collars.presentation.view.CollarSection
 import pe.edu.upc.vacapp.collars.presentation.viewmodel.CollarViewModel
+import pe.edu.upc.vacapp.iam.presentation.view.components.PrimaryButton
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -46,7 +57,8 @@ import pe.edu.upc.vacapp.ui.theme.Sky90
 @Composable
 fun AnimalDetails(
     animal: Animal,
-    collarViewModel: CollarViewModel? = null
+    collarViewModel: CollarViewModel? = null,
+    animalViewModel: AnimalViewModel? = null
 ) {
     LaunchedEffect(animal.id) {
         collarViewModel?.fetchCollars()
@@ -145,14 +157,7 @@ fun AnimalDetails(
                             label = "Age",
                             value = if (animal.age > 0) "${animal.age} months" else "—"
                         )
-                        DetailRow(
-                            label = "Temperature range",
-                            value = "${animal.minTemperature} – ${animal.maxTemperature} °C"
-                        )
-                        DetailRow(
-                            label = "Heart rate range",
-                            value = "${animal.minHeartRate} – ${animal.maxHeartRate} BPM"
-                        )
+                        ThresholdSection(animal = animal, animalViewModel = animalViewModel)
                     }
 
                     collarViewModel?.let { vm ->
@@ -182,6 +187,103 @@ private fun GenderBadge(isMale: Boolean) {
             color = if (isMale) Emerald40 else Sky40
         )
     }
+}
+
+/**
+ * Per-bovine biometric thresholds. Read-only by default; when an [animalViewModel]
+ * is supplied (the IoT/monitoring flow) an "Editar umbrales" action turns the four
+ * values into editable fields and persists them via PUT /bovines/{id}, mirroring
+ * the web client. These thresholds drive the biometric alerts.
+ */
+@Composable
+private fun ThresholdSection(
+    animal: Animal,
+    animalViewModel: AnimalViewModel?
+) {
+    // Reflect server-confirmed edits; seed from the animal passed in.
+    val updated by (animalViewModel?.updatedAnimal ?: kotlinx.coroutines.flow.MutableStateFlow(null))
+        .collectAsState(null)
+    val current = updated?.takeIf { it.id == animal.id } ?: animal
+    val isLoading by (animalViewModel?.isLoading ?: kotlinx.coroutines.flow.MutableStateFlow(false))
+        .collectAsState(false)
+
+    var editing by remember(animal.id) { mutableStateOf(false) }
+    var minTemp by remember(animal.id) { mutableStateOf(animal.minTemperature.toString()) }
+    var maxTemp by remember(animal.id) { mutableStateOf(animal.maxTemperature.toString()) }
+    var minHr by remember(animal.id) { mutableStateOf(animal.minHeartRate.toString()) }
+    var maxHr by remember(animal.id) { mutableStateOf(animal.maxHeartRate.toString()) }
+
+    if (!editing) {
+        DetailRow(
+            label = "Temperature range",
+            value = "${current.minTemperature} – ${current.maxTemperature} °C"
+        )
+        DetailRow(
+            label = "Heart rate range",
+            value = "${current.minHeartRate} – ${current.maxHeartRate} BPM"
+        )
+        if (animalViewModel != null) {
+            TextButton(onClick = {
+                minTemp = current.minTemperature.toString()
+                maxTemp = current.maxTemperature.toString()
+                minHr = current.minHeartRate.toString()
+                maxHr = current.maxHeartRate.toString()
+                editing = true
+            }) { Text("Editar umbrales") }
+        }
+        return
+    }
+
+    Text(
+        text = "Editar umbrales",
+        style = MaterialTheme.typography.labelSmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant
+    )
+    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        ThresholdField("Temp. mín (°C)", minTemp, Modifier.weight(1f)) { minTemp = it }
+        ThresholdField("Temp. máx (°C)", maxTemp, Modifier.weight(1f)) { maxTemp = it }
+    }
+    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        ThresholdField("Pulso mín (BPM)", minHr, Modifier.weight(1f)) { minHr = it }
+        ThresholdField("Pulso máx (BPM)", maxHr, Modifier.weight(1f)) { maxHr = it }
+    }
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        PrimaryButton(
+            label = "Guardar umbrales",
+            onClick = {
+                animalViewModel?.updateAnimal(
+                    animal.copy(
+                        minTemperature = minTemp.toDoubleOrNull() ?: animal.minTemperature,
+                        maxTemperature = maxTemp.toDoubleOrNull() ?: animal.maxTemperature,
+                        minHeartRate = minHr.toIntOrNull() ?: animal.minHeartRate,
+                        maxHeartRate = maxHr.toIntOrNull() ?: animal.maxHeartRate
+                    )
+                )
+                editing = false
+            },
+            isLoading = isLoading,
+            showTrailingIcon = false,
+            modifier = Modifier.weight(1f)
+        )
+        TextButton(onClick = { editing = false }) { Text("Cancelar") }
+    }
+}
+
+@Composable
+private fun ThresholdField(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier,
+    onValueChange: (String) -> Unit
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text(label) },
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+        modifier = modifier
+    )
 }
 
 @Composable

@@ -75,4 +75,26 @@ class AnimalViewModel(
             _breeds.value = animalRepository.getBreeds()
         }
     }
+
+    // Emits the freshly-updated animal so the detail screen can reflect new thresholds.
+    private val _updatedAnimal = MutableStateFlow<Animal?>(null)
+    val updatedAnimal: StateFlow<Animal?> = _updatedAnimal
+
+    /** Persists edits to an existing bovine (e.g. its biometric thresholds). */
+    fun updateAnimal(animal: Animal) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                _updatedAnimal.value = animalRepository.updateAnimal(animal)
+            } catch (e: Exception) {
+                _errorMessage.value = e.message ?: "Error updating animal"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun clearUpdatedAnimal() {
+        _updatedAnimal.value = null
+    }
 }
