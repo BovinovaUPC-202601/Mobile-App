@@ -16,13 +16,8 @@ android {
         applicationId = "pe.edu.upc.vacapp"
         minSdk = 24
         targetSdk = 35
-<<<<<<< HEAD
         versionCode = 2
-        versionName = "1.0.4"
-=======
-        versionCode = 1
-        versionName = "1.0.3"
->>>>>>> develop
+        versionName = "1.0.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
