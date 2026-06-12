@@ -1,8 +1,10 @@
 package pe.edu.upc.vacapp
 
+import android.graphics.Color as AndroidColor
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
@@ -23,7 +25,13 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        // The brand is light-only. Both system bars are forced to a solid
+        // black scrim with light icons so the Login / Register screens read
+        // with a deliberate dark frame at top and bottom.
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.light(AndroidColor.BLACK, AndroidColor.BLACK),
+            navigationBarStyle = SystemBarStyle.dark(AndroidColor.BLACK)
+        )
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             requestNotificationPermission.launch("android.permission.POST_NOTIFICATIONS")
