@@ -4,6 +4,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import pe.edu.upc.vacapp.Vacapp
 import pe.edu.upc.vacapp.animal.data.model.AddAnimalRequest
+import pe.edu.upc.vacapp.animal.data.model.UpdateAnimalRequest
 import pe.edu.upc.vacapp.animal.data.model.toMultipartPart
 import pe.edu.upc.vacapp.animal.data.model.toRequestBody
 import pe.edu.upc.vacapp.animal.data.remote.AnimalService
@@ -37,6 +38,16 @@ open class AnimalRepository(
             res.body()
         } else {
             throw Exception("Error adding animal: ${res.errorBody()?.string()}")
+        }
+    }
+
+    /** Updates an existing bovine (used to edit its biometric thresholds). */
+    open suspend fun updateAnimal(animal: Animal): Animal = withContext(Dispatchers.IO) {
+        val res = animalService.updateAnimal(animal.id, UpdateAnimalRequest.fromAnimal(animal))
+        if (res.isSuccessful) {
+            res.body()?.toAnimal() ?: animal
+        } else {
+            throw Exception("Error updating animal: ${res.errorBody()?.string()}")
         }
     }
 

@@ -17,12 +17,28 @@ import pe.edu.upc.vacapp.monitoring.presentation.viewmodel.MonitoringViewModel
 import pe.edu.upc.vacapp.ui.theme.Color
 
 @Composable
-fun MonitoringView(viewModel: MonitoringViewModel) {
+fun MonitoringView(
+    viewModel: MonitoringViewModel,
+    // Bovines that have a collar assigned — the only ones that stream IoT data.
+    bovines: List<Pair<Int, String>> = emptyList()
+) {
     val latest  by viewModel.latest.collectAsState()
     val history by viewModel.history.collectAsState()
     val loading by viewModel.loading.collectAsState()
 
-    var bovineIdInput by remember { mutableStateOf("") }
+    var selectedId by remember { mutableStateOf<Int?>(null) }
+    var menuOpen by remember { mutableStateOf(false) }
+
+    // Auto-select the first available bovine and load it — no manual ID search needed.
+    LaunchedEffect(bovines) {
+        if (selectedId == null && bovines.isNotEmpty()) {
+            val first = bovines.first().first
+            selectedId = first
+            viewModel.loadData(first)
+        }
+    }
+
+    val selectedName = bovines.firstOrNull { it.first == selectedId }?.second
 
     Column(
         modifier = Modifier
@@ -33,26 +49,31 @@ fun MonitoringView(viewModel: MonitoringViewModel) {
     ) {
         Text("Monitoreo IoT", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Color.Green)
 
-        // Bovine ID input
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            OutlinedTextField(
-                value = bovineIdInput,
-                onValueChange = { bovineIdInput = it },
-                label = { Text("ID del Bovino") },
-                modifier = Modifier.weight(1f),
-                singleLine = true
+        if (bovines.isEmpty()) {
+            Text(
+                "No tenés bovinos con collar asignado. Asigná un collar para monitorear.",
+                fontSize = 14.sp,
+                color = androidx.compose.ui.graphics.Color.Gray
             )
-            Button(
-                onClick = {
-                    val id = bovineIdInput.toIntOrNull()
-                    if (id != null) viewModel.loadData(id)
-                },
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Green)
-            ) {
-                Text("Buscar", color = Color.White)
+        } else {
+            // Bovine selector — only collared bovines, ready to pick on entry.
+            Box {
+                OutlinedButton(onClick = { menuOpen = true }, modifier = Modifier.fillMaxWidth()) {
+                    Text(selectedName ?: "Seleccioná un bovino", modifier = Modifier.weight(1f))
+                    Text("▾")
+                }
+                DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+                    bovines.forEach { (id, name) ->
+                        DropdownMenuItem(
+                            text = { Text(name) },
+                            onClick = {
+                                menuOpen = false
+                                selectedId = id
+                                viewModel.loadData(id)
+                            }
+                        )
+                    }
+                }
             }
         }
 
@@ -65,6 +86,14 @@ fun MonitoringView(viewModel: MonitoringViewModel) {
         // Latest record
         latest?.let { record ->
             HealthRecordCard(record = record, isLatest = true)
+        }
+
+        if (!loading && selectedId != null && latest == null) {
+            Text(
+                "Sin lecturas registradas para este bovino todavía.",
+                fontSize = 13.sp,
+                color = androidx.compose.ui.graphics.Color.Gray
+            )
         }
 
         // History
