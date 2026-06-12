@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import pe.edu.upc.vacapp.animal.data.repository.AnimalRepository
 import pe.edu.upc.vacapp.animal.domain.model.Animal
+import pe.edu.upc.vacapp.animal.domain.model.Breed
 import pe.edu.upc.vacapp.barn.domain.model.Barn
 
 class AnimalViewModel(
@@ -26,6 +27,8 @@ class AnimalViewModel(
     //
     private val _addAnimalSuccess = MutableStateFlow(false)
     val addAnimalSuccess: StateFlow<Boolean> = _addAnimalSuccess
+    private val _breeds = MutableStateFlow<List<Breed>>(emptyList())
+    val breeds: StateFlow<List<Breed>> = _breeds
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
 
@@ -64,6 +67,12 @@ class AnimalViewModel(
     fun getBarns() {
         viewModelScope.launch {
             _barns.value = animalRepository.getBarns()
+        }
+    }
+
+    fun getBreeds() {
+        viewModelScope.launch {
+            _breeds.value = animalRepository.getBreeds()
         }
     }
 }

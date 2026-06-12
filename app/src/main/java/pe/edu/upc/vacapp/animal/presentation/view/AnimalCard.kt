@@ -1,201 +1,210 @@
 package pe.edu.upc.vacapp.animal.presentation.view
 
-import android.util.Log
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Pets
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
-import pe.edu.upc.vacapp.R
+import coil3.compose.AsyncImage
 import pe.edu.upc.vacapp.animal.domain.model.Animal
 import pe.edu.upc.vacapp.animal.domain.model.AnimalImage
 import pe.edu.upc.vacapp.animal.presentation.viewmodel.AnimalViewModel
-import pe.edu.upc.vacapp.ui.theme.Color
+import pe.edu.upc.vacapp.iam.presentation.view.components.EmptyState
+import pe.edu.upc.vacapp.ui.theme.Emerald40
+import pe.edu.upc.vacapp.ui.theme.Emerald90
+import pe.edu.upc.vacapp.ui.theme.Sky40
+import pe.edu.upc.vacapp.ui.theme.Sky90
 
-//@Preview(showBackground = true)
 @Composable
 fun AnimalCardList(
     viewmodel: AnimalViewModel,
-    onTap: (Animal) -> Unit
+    onTap: (Animal) -> Unit,
+    onTapAddAnimal: () -> Unit = {}
 ) {
-    val animals = viewmodel.animals.collectAsState()
+    val animals by viewmodel.animals.collectAsState()
 
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.CenterHorizontally
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
     ) {
-        Text(
-            "Animals",
-            fontWeight = FontWeight.Bold,
-            fontSize = 45.sp,
-            color = Color.ForestGreen,
-            modifier = Modifier.padding(bottom = 20.dp, top = 15.dp)
-        )
-
-        LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(30.dp)
-        ) {
-            items(animals.value) {
-                AnimalCard(it) {
-                    onTap(it)
+        if (animals.isEmpty()) {
+            EmptyState(
+                icon = Icons.Filled.Pets,
+                title = "No animals yet",
+                description = "Registered animals will appear here."
+            )
+        } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(horizontal = 24.dp, vertical = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(animals, key = { it.id }) { animal ->
+                    AnimalCard(
+                        animal = animal,
+                        onClick = { onTap(animal) }
+                    )
                 }
             }
+        }
+
+        FloatingActionButton(
+            onClick = onTapAddAnimal,
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .navigationBarsPadding()
+                .padding(end = 20.dp, bottom = 20.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Filled.Add,
+                contentDescription = "Add animal"
+            )
         }
     }
 }
 
-@Preview(showBackground = true)
 @Composable
 fun AnimalCard(
-    animal: Animal = Animal(),
-    onTap: () -> Unit = {}
+    animal: Animal,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit = {}
 ) {
-    Log.d("animal", animal.toString())
-    val icon = if (animal.isMale) R.drawable.gender_male else R.drawable.gender_female
     val imgUrl = when (val image = animal.image) {
         is AnimalImage.FromUrl -> image.url
-        is AnimalImage.FromFile -> ""
-        null -> ""
+        else -> null
     }
 
-    Card(
-        modifier = Modifier
-            .size(350.dp, 200.dp)
-            .clickable { onTap() },
-        colors = CardDefaults.cardColors(
-            containerColor = Color.AlmondCream
-        )
+    Surface(
+        onClick = onClick,
+        modifier = modifier
+            .fillMaxWidth()
+            .shadow(
+                elevation = 4.dp,
+                shape = RoundedCornerShape(16.dp),
+                clip = false,
+                ambientColor = Color.Black.copy(alpha = 0.04f),
+                spotColor = Color.Black.copy(alpha = 0.06f)
+            ),
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = 0.dp
     ) {
         Row(
-            modifier = Modifier.fillMaxSize(),
-            horizontalArrangement = Arrangement.spacedBy(30.dp, Alignment.CenterHorizontally),
-            verticalAlignment = Alignment.CenterVertically
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .width(170.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterVertically)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(5.dp, Alignment.CenterHorizontally)
-                ) {
-                    Text(
-                        animal.name,
-                        fontWeight = FontWeight.Light,
-                        fontSize = 28.sp,
-                        color = Color.Black
-                    )
-                    Icon(
-                        painterResource(icon),
-                        contentDescription = null,
-                        tint = Color.Black
-                    )
-                }
-
+            if (imgUrl != null) {
                 AsyncImage(
                     model = imgUrl,
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .size(170.dp, 115.dp)
+                        .size(56.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .size(56.dp)
+                        .background(Emerald90, CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Pets,
+                        contentDescription = null,
+                        tint = Emerald40,
+                        modifier = Modifier.size(26.dp)
+                    )
+                }
+            }
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Text(
+                        text = animal.name.ifBlank { "Unnamed animal" },
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                        modifier = Modifier.weight(1f, fill = false)
+                    )
+                    GenderMiniBadge(isMale = animal.isMale)
+                }
+                Text(
+                    text = listOfNotNull(
+                        animal.breed.takeIf { it.isNotBlank() },
+                        if (animal.age > 0) "${animal.age} mo" else null,
+                        animal.barnName.takeIf { it.isNotBlank() }
+                    ).joinToString(" · ").ifBlank { "No details" },
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1
                 )
             }
-
-            Column(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .padding(vertical = 10.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterVertically)
-            ) {
-                Column {
-                    Text(
-                        "Barn",
-                        fontWeight = FontWeight.Black,
-                        fontSize = 12.sp,
-                        color = Color.Black
-                    )
-                    Text(
-                        animal.barnName,
-                        fontWeight = FontWeight.Light,
-                        fontSize = 18.sp,
-                        color = Color.Black
-                    )
-                }
-
-                Column {
-                    Text(
-                        "Temperature",
-                        fontWeight = FontWeight.Black,
-                        fontSize = 12.sp,
-                        color = Color.Black
-                    )
-                    Text(
-                        "${animal.minTemperature} - ${animal.maxTemperature} °C",
-                        fontWeight = FontWeight.Light,
-                        fontSize = 18.sp,
-                        color = Color.Black
-                    )
-                }
-
-                Column {
-                    Text(
-                        "Heart Rate",
-                        fontWeight = FontWeight.Black,
-                        fontSize = 12.sp,
-                        color = Color.Black
-                    )
-                    Text(
-                        "${animal.minHeartRate} - ${animal.maxHeartRate} BPM",
-                        fontWeight = FontWeight.Light,
-                        fontSize = 18.sp,
-                        color = Color.Black
-                    )
-                }
-
-                Column {
-                    Text(
-                        "Age",
-                        fontWeight = FontWeight.Black,
-                        fontSize = 12.sp,
-                        color = Color.Black
-                    )
-                    Text(
-                        "${animal.age} years",
-                        fontWeight = FontWeight.Light,
-                        fontSize = 18.sp,
-                        color = Color.Black
-                    )
-                }
-            }
+            Icon(
+                imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(20.dp)
+            )
         }
+    }
+}
+
+@Composable
+private fun GenderMiniBadge(isMale: Boolean) {
+    Box(
+        modifier = Modifier
+            .size(24.dp)
+            .background(
+                if (isMale) Emerald90 else Sky90,
+                RoundedCornerShape(6.dp)
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = if (isMale) "\u2642" else "\u2640",
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.Bold,
+            color = if (isMale) Emerald40 else Sky40
+        )
     }
 }
