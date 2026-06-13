@@ -57,7 +57,10 @@ class CollarViewModel(
     /** Collar numbers 1..allowance not yet taken by an active collar. */
     fun availableNumbers(): List<Int> {
         val taken = _collars.value.mapNotNull { CollarId.parseNumber(it.deviceId) }.toSet()
+        // Cap by the real free slots from the backend, so collars that don't follow the
+        // collar-N convention (legacy/raw ids) still consume a slot and we never over-offer.
         return (1.._capacity.value.allowance).filter { it !in taken }
+            .take(_capacity.value.available.coerceAtLeast(0))
     }
 
     fun assign(number: Int, bovineId: Int) {
