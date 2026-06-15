@@ -5,7 +5,9 @@ import pe.edu.upc.vacapp.barn.presentation.viewmodel.BarnViewModel
 
 
 object PresentationModel {
-    fun getBarnViewModel(): BarnViewModel{
-        return BarnViewModel(getBarnRepository())
+    private val barnViewModelInstance: BarnViewModel by lazy {
+        BarnViewModel(getBarnRepository())
     }
+
+    fun getBarnViewModel(): BarnViewModel = barnViewModelInstance
 }

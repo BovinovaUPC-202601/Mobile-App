@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import pe.edu.upc.vacapp.animal.data.repository.AnimalRepository
 import pe.edu.upc.vacapp.animal.domain.model.Animal
+import pe.edu.upc.vacapp.animal.domain.model.Breed
 import pe.edu.upc.vacapp.barn.domain.model.Barn
 
 class AnimalViewModel(
@@ -26,7 +27,10 @@ class AnimalViewModel(
     //
     private val _addAnimalSuccess = MutableStateFlow(false)
     val addAnimalSuccess: StateFlow<Boolean> = _addAnimalSuccess
-
+    private val _breeds = MutableStateFlow<List<Breed>>(emptyList())
+    val breeds: StateFlow<List<Breed>> = _breeds
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading
 
     /* Methods */
     //
@@ -36,13 +40,16 @@ class AnimalViewModel(
     //
     fun addAnimal(animal: Animal) {
         viewModelScope.launch {
+            _isLoading.value = true
             try {
                 animalRepository.addAnimal(animal)
-                _addAnimalSuccess.value = true  // <-- ✅ Success
+                _addAnimalSuccess.value = true  // <-- Success
             } catch (e: IllegalArgumentException) {
                 _errorMessage.value = e.message ?: "Error adding animal"
             } catch (e: Exception) {
                 _errorMessage.value = "Unknown error when adding the animal"
+            } finally {
+                _isLoading.value = false
             }
         }
     }
@@ -61,5 +68,33 @@ class AnimalViewModel(
         viewModelScope.launch {
             _barns.value = animalRepository.getBarns()
         }
+    }
+
+    fun getBreeds() {
+        viewModelScope.launch {
+            _breeds.value = animalRepository.getBreeds()
+        }
+    }
+
+    // Emits the freshly-updated animal so the detail screen can reflect new thresholds.
+    private val _updatedAnimal = MutableStateFlow<Animal?>(null)
+    val updatedAnimal: StateFlow<Animal?> = _updatedAnimal
+
+    /** Persists edits to an existing bovine (e.g. its biometric thresholds). */
+    fun updateAnimal(animal: Animal) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                _updatedAnimal.value = animalRepository.updateAnimal(animal)
+            } catch (e: Exception) {
+                _errorMessage.value = e.message ?: "Error updating animal"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun clearUpdatedAnimal() {
+        _updatedAnimal.value = null
     }
 }

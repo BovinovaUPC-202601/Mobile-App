@@ -16,6 +16,7 @@ import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -24,6 +25,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -48,8 +50,29 @@ fun AddCampaignView(
     goHome: () -> Unit = {},
     viewModel: CampaignViewModel
 ) {
-    val barns = viewModel.barn.collectAsState()
     val campaign = remember { mutableStateOf(Campaign()) }
+    val isLoading = viewModel.isLoading.collectAsState()
+    val addSuccess = viewModel.addSuccess.collectAsState()
+    val colors = TextFieldDefaults.colors(
+        focusedContainerColor = Color.Transparent,
+        unfocusedContainerColor = Color.Transparent,
+        disabledContainerColor = Color.Transparent,
+        errorContainerColor = Color.Transparent,
+        focusedIndicatorColor = Color.Black,
+        unfocusedIndicatorColor = Color.Black,
+        disabledIndicatorColor = Color.Black,
+        focusedLabelColor = Color.Black,
+        unfocusedLabelColor = Color.Black,
+        disabledLabelColor = Color.Black,
+        disabledTextColor = Color.Black
+    )
+
+    LaunchedEffect(addSuccess.value) {
+        if (addSuccess.value) {
+            goHome()
+            viewModel.resetAddSuccess()
+        }
+    }
     Card(
         modifier = Modifier
             .width(356.dp)
@@ -68,12 +91,7 @@ fun AddCampaignView(
         ) {
 
             TextField(
-                colors = TextFieldDefaults.colors(
-                    unfocusedContainerColor = Color.Transparent,
-                    focusedContainerColor = Color.Transparent,
-                    focusedIndicatorColor = Color.Black,
-                    unfocusedIndicatorColor = Color.Black
-                ),
+                colors = colors,
                 value = campaign.value.name,
                 onValueChange = {
                     campaign.value = campaign.value.copy(name = it)
@@ -91,12 +109,7 @@ fun AddCampaignView(
 
             )
             TextField(
-                colors = TextFieldDefaults.colors(
-                    unfocusedContainerColor = Color.Transparent,
-                    focusedContainerColor = Color.Transparent,
-                    focusedIndicatorColor = Color.Black,
-                    unfocusedIndicatorColor = Color.Black
-                ),
+                colors = colors,
                 value = campaign.value.description,
                 onValueChange = {
                     campaign.value = campaign.value.copy(description = it)
@@ -113,15 +126,6 @@ fun AddCampaignView(
                 textStyle = TextStyle(color = Color.Black)
 
             )
-            Row {
-                DropdownSelector(
-                    label = "Barn",
-                    items = barns.value,
-                    onItemSelected = { barn ->
-                        campaign.value = campaign.value.copy(barnId = barn.id)
-                    }
-                )
-            }
 
             DatePickerTextField(
                 label = "Start date",
@@ -146,7 +150,8 @@ fun AddCampaignView(
                 horizontalArrangement = Arrangement.End
             ) {
                 IconButton(
-                    onClick = { goHome() }
+                    onClick = { goHome() },
+                    enabled = !isLoading.value
                 ) {
                     Icon(
                         painterResource(R.drawable.x_circle),
@@ -155,12 +160,22 @@ fun AddCampaignView(
                     )
                 }
                 IconButton(
-                    onClick = { viewModel.addCanpaing(campaign.value) }
+                    onClick = { viewModel.addCanpaing(campaign.value) },
+                    enabled = !isLoading.value
                 ) {
-                    Icon(
-                        painterResource(R.drawable.check_circle), null,
-                        modifier = Modifier.size(45.dp)
-                    )
+                    if (isLoading.value) {
+                         CircularProgressIndicator(
+                            modifier = Modifier.size(35.dp),
+                            color = Color.Black,
+                            strokeWidth = 3.dp
+                        )
+                    } else {
+                        Icon(
+                            painterResource(R.drawable.check_circle), null,
+                            modifier = Modifier.size(45.dp),
+                            tint = Color.Black
+                        )
+                    }
                 }
             }
 
@@ -177,7 +192,19 @@ fun DatePickerTextField(
 ) {
     val context = LocalContext.current
     val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
-
+    val colors = TextFieldDefaults.colors(
+        focusedContainerColor = Color.Transparent,
+        unfocusedContainerColor = Color.Transparent,
+        disabledContainerColor = Color.Transparent,
+        errorContainerColor = Color.Transparent,
+        focusedIndicatorColor = Color.Black,
+        unfocusedIndicatorColor = Color.Black,
+        disabledIndicatorColor = Color.Black,
+        focusedLabelColor = Color.Black,
+        unfocusedLabelColor = Color.Black,
+        disabledLabelColor = Color.Black,
+        disabledTextColor = Color.Black
+    )
 
     val datePickerDialog = remember {
         DatePickerDialog(
@@ -216,12 +243,7 @@ fun DatePickerTextField(
                 )
             }
         },
-        colors = TextFieldDefaults.colors(
-            unfocusedContainerColor = Color.Transparent,
-            focusedContainerColor = Color.Transparent,
-            focusedIndicatorColor = Color.Black,
-            unfocusedIndicatorColor = Color.Black
-        ),
+        colors = colors,
         textStyle = TextStyle(color = Color.Black)
     )
 }

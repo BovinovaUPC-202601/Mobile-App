@@ -1,58 +1,61 @@
 package pe.edu.upc.vacapp.ui.theme
 
-import android.app.Activity
 import android.os.Build
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 
-private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
-)
+private val LightColors = lightColorScheme(
+    primary = Emerald40,
+    onPrimary = Cream95,
+    primaryContainer = Emerald90,
+    onPrimaryContainer = Emerald30,
 
-private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
+    secondary = Sage40,
+    onSecondary = Cream95,
+    secondaryContainer = Sage90,
+    onSecondaryContainer = OnSurfaceLight,
 
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+    background = Cream95,
+    onBackground = OnSurfaceLight,
+    surface = Color.White,
+    onSurface = OnSurfaceLight,
+    surfaceVariant = Stone90,
+    onSurfaceVariant = OnSurfaceVariantLight,
+    surfaceContainer = Cream95,
+    surfaceContainerHigh = Stone90,
+    surfaceContainerHighest = Stone80,
+
+    outline = OutlineLight,
+    outlineVariant = Stone80,
+
+    error = Error40,
+    onError = Cream95,
+    errorContainer = ErrorContainerLight,
+    onErrorContainer = OnSurfaceLight
 )
 
 @Composable
 fun VacAppTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    // The brand is intentionally light-only. We always render with the light
+    // scheme, regardless of the system's dark/light setting.
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+            dynamicLightColorScheme(context)
         }
-
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
+        else -> LightColors
     }
 
     MaterialTheme(
         colorScheme = colorScheme,
         typography = Typography,
+        shapes = VacAppShapes,
         content = content
     )
 }

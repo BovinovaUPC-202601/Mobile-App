@@ -6,6 +6,9 @@ import com.google.gson.JsonDeserializationContext
 import com.google.gson.JsonDeserializer
 import com.google.gson.JsonElement
 import com.google.gson.JsonParseException
+import com.google.gson.JsonPrimitive
+import com.google.gson.JsonSerializationContext
+import com.google.gson.JsonSerializer
 import okhttp3.OkHttpClient
 import org.threeten.bp.LocalDate
 import org.threeten.bp.format.DateTimeFormatter
@@ -16,6 +19,7 @@ import pe.edu.upc.vacapp.shared.data.remote.AuthInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.lang.reflect.Type
+import java.util.concurrent.TimeUnit
 import java.util.Locale
 
 object SharedDataModule {
@@ -27,6 +31,7 @@ object SharedDataModule {
         if (retrofitInstance == null) {
             val okHttpClient = OkHttpClient.Builder()
                 .addInterceptor(AuthInterceptor())
+                .readTimeout(1, TimeUnit.MINUTES)
                 .build()
 
             val customGson = GsonBuilder()
@@ -55,7 +60,15 @@ object SharedDataModule {
 }
 
 
-class LocalDateAdapter : JsonDeserializer<LocalDate> {
+class LocalDateAdapter : JsonSerializer<LocalDate>, JsonDeserializer<LocalDate> {
+    override fun serialize(
+        src: LocalDate,
+        typeOfSrc: Type,
+        context: JsonSerializationContext
+    ): JsonElement {
+        return JsonPrimitive(src.format(DateTimeFormatter.ISO_LOCAL_DATE))
+    }
+
     override fun deserialize(
         json: JsonElement,
         typeOfT: Type,

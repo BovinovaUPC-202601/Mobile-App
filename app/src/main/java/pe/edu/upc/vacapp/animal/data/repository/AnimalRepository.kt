@@ -4,14 +4,16 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import pe.edu.upc.vacapp.Vacapp
 import pe.edu.upc.vacapp.animal.data.model.AddAnimalRequest
+import pe.edu.upc.vacapp.animal.data.model.UpdateAnimalRequest
 import pe.edu.upc.vacapp.animal.data.model.toMultipartPart
 import pe.edu.upc.vacapp.animal.data.model.toRequestBody
 import pe.edu.upc.vacapp.animal.data.remote.AnimalService
 import pe.edu.upc.vacapp.animal.domain.model.Animal
+import pe.edu.upc.vacapp.animal.domain.model.Breed
 import pe.edu.upc.vacapp.barn.domain.model.Barn
 import java.io.File
 
-class AnimalRepository(
+open class AnimalRepository(
     private val animalService: AnimalService
 ) {
     suspend fun addAnimal(animal: Animal) = withContext(Dispatchers.IO) {
@@ -39,7 +41,17 @@ class AnimalRepository(
         }
     }
 
-    suspend fun getAllAnimals(): List<Animal> = withContext(Dispatchers.IO) {
+    /** Updates an existing bovine (used to edit its biometric thresholds). */
+    open suspend fun updateAnimal(animal: Animal): Animal = withContext(Dispatchers.IO) {
+        val res = animalService.updateAnimal(animal.id, UpdateAnimalRequest.fromAnimal(animal))
+        if (res.isSuccessful) {
+            res.body()?.toAnimal() ?: animal
+        } else {
+            throw Exception("Error updating animal: ${res.errorBody()?.string()}")
+        }
+    }
+
+    open suspend fun getAllAnimals(): List<Animal> = withContext(Dispatchers.IO) {
         val res = animalService.getAllAnimals()
 
         if (res.isSuccessful) {
@@ -65,6 +77,18 @@ class AnimalRepository(
         if (response.isSuccessful) {
             return@withContext response.body()?.map {
                 it.toBarn()
+            } ?: emptyList()
+        }
+
+        return@withContext emptyList()
+    }
+
+    suspend fun getBreeds(): List<Breed> = withContext(Dispatchers.IO){
+        val response = animalService.getBreeds()
+
+        if (response.isSuccessful) {
+            return@withContext response.body()?.map {
+                it.toBreed()
             } ?: emptyList()
         }
 

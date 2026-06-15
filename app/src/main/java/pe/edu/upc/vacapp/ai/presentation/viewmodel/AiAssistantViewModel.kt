@@ -7,9 +7,14 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import org.threeten.bp.LocalDateTime
 import org.threeten.bp.LocalTime
+import org.threeten.bp.OffsetDateTime
 import org.threeten.bp.format.DateTimeFormatter
 import pe.edu.upc.vacapp.ai.data.model.AnalysisResultResponse
+import pe.edu.upc.vacapp.ai.data.model.BovineAnalysisResponse
+import pe.edu.upc.vacapp.ai.data.model.ChatMessageResponse
+import pe.edu.upc.vacapp.ai.data.repository.AiAccessDeniedException
 import pe.edu.upc.vacapp.ai.data.repository.AiAssistantRepository
+import pe.edu.upc.vacapp.ai.data.repository.AiSessionExpiredException
 import pe.edu.upc.vacapp.animal.data.repository.AnimalRepository
 import pe.edu.upc.vacapp.animal.domain.model.Animal
 
@@ -38,7 +43,6 @@ class AiAssistantViewModel(
 ) : ViewModel() {
 
     private var nextMessageId = 1L
-    private var nextHistoryId = 1L
 
     private val _animals = MutableStateFlow<List<Animal>>(emptyList())
     val animals: StateFlow<List<Animal>> = _animals
@@ -46,24 +50,10 @@ class AiAssistantViewModel(
     private val _selectedBovineId = MutableStateFlow<Int?>(null)
     val selectedBovineId: StateFlow<Int?> = _selectedBovineId
 
-    private val _generalMessages = MutableStateFlow(
-        listOf(
-            nextMessage(
-                isFromUser = false,
-                content = "Hello. I can answer questions about your ranch, campaigns, and bovines."
-            )
-        )
-    )
+    private val _generalMessages = MutableStateFlow(listOf(generalGreeting()))
     val generalMessages: StateFlow<List<AiChatMessage>> = _generalMessages
 
-    private val _bovineMessages = MutableStateFlow(
-        listOf(
-            nextMessage(
-                isFromUser = false,
-                content = "Select a bovine and ask me about its history, care, or current context."
-            )
-        )
-    )
+    private val _bovineMessages = MutableStateFlow(listOf(bovinePlaceholder()))
     val bovineMessages: StateFlow<List<AiChatMessage>> = _bovineMessages
 
     private val _analysisResult = MutableStateFlow<AnalysisResultResponse?>(null)
@@ -84,10 +74,13 @@ class AiAssistantViewModel(
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage
 
+    /** True once the backend reports the AI Assistant is gated behind the Plus plan (HTTP 403). */
+    private val _requiresPlus = MutableStateFlow(false)
+    val requiresPlus: StateFlow<Boolean> = _requiresPlus
+
     fun loadAnimals() {
         viewModelScope.launch {
             _isLoadingAnimals.value = true
-
             try {
                 val loadedAnimals = animalRepository.getAllAnimals()
                 _animals.value = loadedAnimals
@@ -100,16 +93,24 @@ class AiAssistantViewModel(
             } finally {
                 _isLoadingAnimals.value = false
             }
+
+            // Restore the persisted conversations/analyses (these are the gated ai/* endpoints).
+            loadGeneralHistorySuspending()
+            _selectedBovineId.value?.let { if (!_requiresPlus.value) loadBovineContextSuspending(it) }
         }
     }
 
     fun selectBovine(bovineId: Int) {
+        if (_selectedBovineId.value == bovineId) return
         _selectedBovineId.value = bovineId
+
+        if (_requiresPlus.value) return
+        viewModelScope.launch { loadBovineContextSuspending(bovineId) }
     }
 
     fun sendMessage(mode: AiChatMode, message: String) {
         val trimmedMessage = message.trim()
-        if (trimmedMessage.isBlank() || _isChatLoading.value) return
+        if (trimmedMessage.isBlank() || _isChatLoading.value || _requiresPlus.value) return
 
         when (mode) {
             AiChatMode.GENERAL -> sendGeneralMessage(trimmedMessage)
@@ -129,6 +130,8 @@ class AiAssistantViewModel(
             return
         }
 
+        if (_requiresPlus.value) return
+
         viewModelScope.launch {
             _isAnalysisLoading.value = true
             _errorMessage.value = null
@@ -136,16 +139,9 @@ class AiAssistantViewModel(
             try {
                 val result = aiAssistantRepository.analyzePhoto(bovineId, imageBase64)
                 _analysisResult.value = result
-                _analysisHistory.value = listOf(
-                    AiAnalysisHistoryItem(
-                        id = nextHistoryId++,
-                        bovineName = bovineNameFor(bovineId),
-                        createdAt = LocalDateTime.now().format(historyFormatter),
-                        result = result
-                    )
-                ) + _analysisHistory.value
+                refreshAnalyses(bovineId, result)
             } catch (e: Exception) {
-                _errorMessage.value = e.message ?: "Could not analyze the photo"
+                handleAiException(e, "Could not analyze the photo")
             } finally {
                 _isAnalysisLoading.value = false
             }
@@ -167,7 +163,7 @@ class AiAssistantViewModel(
                 val response = aiAssistantRepository.sendGeneralChat(message)
                 _generalMessages.value = _generalMessages.value + nextMessage(false, response.response)
             } catch (e: Exception) {
-                _errorMessage.value = e.message ?: "Could not send the message"
+                handleAiException(e, "Could not send the message")
             } finally {
                 _isChatLoading.value = false
             }
@@ -191,11 +187,101 @@ class AiAssistantViewModel(
                 val response = aiAssistantRepository.sendBovineChat(bovineId, message)
                 _bovineMessages.value = _bovineMessages.value + nextMessage(false, response.response)
             } catch (e: Exception) {
-                _errorMessage.value = e.message ?: "Could not send the message"
+                handleAiException(e, "Could not send the message")
             } finally {
                 _isChatLoading.value = false
             }
         }
+    }
+
+    private suspend fun loadGeneralHistorySuspending() {
+        try {
+            val history = aiAssistantRepository.getGeneralChatHistory()
+            if (history.isNotEmpty()) {
+                _generalMessages.value = history.map(::toUiMessage)
+            }
+        } catch (e: AiAccessDeniedException) {
+            _requiresPlus.value = true
+        } catch (e: AiSessionExpiredException) {
+            _errorMessage.value = e.message
+        } catch (_: Exception) {
+            // History is best-effort: keep the greeting if it cannot be restored.
+        }
+    }
+
+    private suspend fun loadBovineContextSuspending(bovineId: Int) {
+        try {
+            val history = aiAssistantRepository.getBovineChatHistory(bovineId)
+            _bovineMessages.value =
+                if (history.isEmpty()) listOf(bovineIntro(bovineId)) else history.map(::toUiMessage)
+        } catch (e: AiAccessDeniedException) {
+            _requiresPlus.value = true
+            return
+        } catch (e: AiSessionExpiredException) {
+            _errorMessage.value = e.message
+        } catch (_: Exception) {
+            _bovineMessages.value = listOf(bovineIntro(bovineId))
+        }
+
+        try {
+            _analysisHistory.value = aiAssistantRepository.getBovineAnalyses(bovineId).map(::toHistoryItem)
+        } catch (e: AiAccessDeniedException) {
+            _requiresPlus.value = true
+        } catch (_: Exception) {
+            _analysisHistory.value = emptyList()
+        }
+    }
+
+    private suspend fun refreshAnalyses(bovineId: Int, latest: AnalysisResultResponse) {
+        try {
+            _analysisHistory.value = aiAssistantRepository.getBovineAnalyses(bovineId).map(::toHistoryItem)
+        } catch (_: Exception) {
+            // Fall back to a local entry so the just-completed analysis is still visible.
+            _analysisHistory.value = listOf(
+                AiAnalysisHistoryItem(
+                    id = System.currentTimeMillis(),
+                    bovineName = bovineNameFor(bovineId),
+                    createdAt = LocalDateTime.now().format(historyFormatter),
+                    result = latest
+                )
+            ) + _analysisHistory.value
+        }
+    }
+
+    private fun handleAiException(e: Exception, fallback: String) {
+        when (e) {
+            is AiAccessDeniedException -> {
+                _requiresPlus.value = true
+                _errorMessage.value = e.message
+            }
+
+            is AiSessionExpiredException -> _errorMessage.value = e.message
+            else -> _errorMessage.value = e.message ?: fallback
+        }
+    }
+
+    private fun toUiMessage(message: ChatMessageResponse): AiChatMessage {
+        return AiChatMessage(
+            id = nextMessageId++,
+            isFromUser = message.role.equals("user", ignoreCase = true),
+            content = message.content,
+            sentAt = formatClock(message.timestamp)
+        )
+    }
+
+    private fun toHistoryItem(analysis: BovineAnalysisResponse): AiAnalysisHistoryItem {
+        return AiAnalysisHistoryItem(
+            id = analysis.id.toLong(),
+            bovineName = bovineNameFor(analysis.bovineId),
+            createdAt = formatDateTime(analysis.createdAt),
+            result = AnalysisResultResponse(
+                score = analysis.score,
+                visibleIssues = analysis.visibleIssues,
+                urgency = analysis.urgency,
+                recommendation = analysis.recommendation,
+                confidence = analysis.confidence
+            )
+        )
     }
 
     private fun nextMessage(isFromUser: Boolean, content: String): AiChatMessage {
@@ -207,8 +293,43 @@ class AiAssistantViewModel(
         )
     }
 
+    private fun generalGreeting(): AiChatMessage = nextMessage(
+        isFromUser = false,
+        content = "Hello. I can answer questions about your ranch, campaigns, and bovines."
+    )
+
+    private fun bovinePlaceholder(): AiChatMessage = nextMessage(
+        isFromUser = false,
+        content = "Select a bovine and ask me about its history, care, or current context."
+    )
+
+    private fun bovineIntro(bovineId: Int): AiChatMessage = nextMessage(
+        isFromUser = false,
+        content = "Ask me anything about ${bovineNameFor(bovineId)}: its history, care, or current context."
+    )
+
     private fun bovineNameFor(bovineId: Int): String {
         return _animals.value.firstOrNull { it.id == bovineId }?.name ?: "Bovine #$bovineId"
+    }
+
+    private fun formatClock(raw: String): String {
+        return parseDateTime(raw)?.toLocalTime()?.format(timeFormatter).orEmpty()
+    }
+
+    private fun formatDateTime(raw: String): String {
+        return parseDateTime(raw)?.format(historyFormatter) ?: raw
+    }
+
+    private fun parseDateTime(raw: String): LocalDateTime? {
+        return try {
+            OffsetDateTime.parse(raw).toLocalDateTime()
+        } catch (e: Exception) {
+            try {
+                LocalDateTime.parse(raw)
+            } catch (e2: Exception) {
+                null
+            }
+        }
     }
 
     private companion object {

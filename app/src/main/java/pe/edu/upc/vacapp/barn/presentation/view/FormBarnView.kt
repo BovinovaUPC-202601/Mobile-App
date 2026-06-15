@@ -2,154 +2,124 @@ package pe.edu.upc.vacapp.barn.presentation.view
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import pe.edu.upc.vacapp.R
 import pe.edu.upc.vacapp.barn.domain.model.Barn
 import pe.edu.upc.vacapp.barn.presentation.viewmodel.BarnViewModel
-import pe.edu.upc.vacapp.ui.theme.Color
+import pe.edu.upc.vacapp.iam.presentation.view.components.AuthTextField
+import pe.edu.upc.vacapp.iam.presentation.view.components.PrimaryButton
 
 @Composable
-
 fun FormBarnView(
     viewModel: BarnViewModel,
-    goHome:() ->Unit
+    goHome: () -> Unit
 ) {
-    val barn = remember { mutableStateOf(Barn()) }
-    Card(
-        modifier = Modifier
-            .width(356.dp)
-            .padding(16.dp),
-        shape = RoundedCornerShape(5.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.AlmondCream,
-            contentColor = Color.Black
-        )
-    ) {
-        Column(
-            modifier = Modifier
-                .padding(20.dp)
-                .fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
-        ) {
+    var name by remember { mutableStateOf("") }
+    var limit by remember { mutableStateOf("") }
+    val isLoading by viewModel.isLoading.collectAsState()
+    val saveSuccess by viewModel.saveSuccess.collectAsState()
 
-            TextField(
-                colors = TextFieldDefaults.colors(
-                    unfocusedContainerColor = Color.Transparent,
-                    focusedContainerColor = Color.Transparent,
-                    focusedIndicatorColor = Color.Black,
-                    unfocusedIndicatorColor = Color.Black
-                ),
-                value = barn.value.name,
-                onValueChange = {
-                    barn.value = barn.value.copy(name = it)
-                },
-                label = {
-                    Text(
-                        "Name",
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 40.sp,
-                    )
-                },
-                textStyle = TextStyle(color = Color.Black)
+    LaunchedEffect(Unit) {
+        viewModel.resetSaveSuccess()
+    }
 
-            )
-
-
-
-            TextField(
-                colors = TextFieldDefaults.colors(
-                    unfocusedContainerColor = Color.Transparent,
-                    focusedContainerColor = Color.Transparent,
-                    focusedIndicatorColor = Color.Black,
-                    unfocusedIndicatorColor = Color.Black
-                ),
-                value = barn.value.limit,
-                onValueChange = {
-                    barn.value = barn.value.copy(limit = it)
-                },
-                label = {
-                    Text(
-                        "Limit",
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 40.sp
-                    )
-                },
-                textStyle = TextStyle(color = Color.Black)
-
-            )
-
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(end = 10.dp),
-                horizontalArrangement = Arrangement.End
-            ) {
-                IconButton(
-                    onClick = { goHome() }
-                ) {
-                    Icon(
-                        painterResource(R.drawable.x_circle),
-                        null,
-                        modifier = Modifier.size(45.dp)
-                    )
-                }
-                IconButton(
-                    onClick = { viewModel.addBarn(barn.value) }
-                ) {
-                    Icon(
-                        painterResource(R.drawable.check_circle), null,
-                        modifier = Modifier.size(45.dp)
-                    )
-                }
-            }
-
-
+    LaunchedEffect(saveSuccess) {
+        if (saveSuccess == true) {
+            goHome()
+            viewModel.resetSaveSuccess()
         }
     }
-}
 
-@Composable
-fun Underlined(value: String) {
-    Text(
-        text = value,
-        fontSize = 18.sp,
-        color = Color.Black,
-        fontWeight = FontWeight.Normal,
+    val submit = {
+        if (!isLoading) {
+            viewModel.addBarn(Barn(name = name, limit = limit))
+        }
+    }
+
+    Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .drawBehind {
-                val strokeWidth = 1.dp.toPx()
-                val y = size.height - strokeWidth
-                drawLine(
-                    color = Color.Black,
-                    start = Offset(0f, y),
-                    end = Offset(size.width, y),
-                    strokeWidth = strokeWidth
+            .widthIn(max = 480.dp)
+            .shadow(
+                elevation = 12.dp,
+                shape = RoundedCornerShape(20.dp),
+                clip = false,
+                ambientColor = Color.Black.copy(alpha = 0.04f),
+                spotColor = Color.Black.copy(alpha = 0.06f)
+            ),
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = 0.dp
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 22.dp, vertical = 26.dp),
+            verticalArrangement = Arrangement.spacedBy(18.dp)
+        ) {
+            Text(
+                text = "Add barn",
+                style = MaterialTheme.typography.headlineSmall,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+
+            AuthTextField(
+                value = name,
+                onValueChange = { name = it },
+                label = "Name",
+                imeAction = ImeAction.Next
+            )
+
+            AuthTextField(
+                value = limit,
+                onValueChange = { input -> if (input.all(Char::isDigit)) limit = input },
+                label = "Capacity (bovines)",
+                keyboardType = KeyboardType.Number,
+                imeAction = ImeAction.Done,
+                onImeAction = { submit() }
+            )
+
+            PrimaryButton(
+                label = "Save barn",
+                onClick = { submit() },
+                isLoading = isLoading,
+                enabled = name.isNotBlank() && limit.isNotBlank()
+            )
+
+            Spacer(modifier = Modifier.height(2.dp))
+
+            TextButton(
+                onClick = goHome,
+                modifier = Modifier.align(Alignment.CenterHorizontally),
+                enabled = !isLoading
+            ) {
+                Text(
+                    text = "Cancel",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-    )
+        }
+    }
 }
