@@ -3,6 +3,7 @@ package pe.edu.upc.vacapp.subscription.data.repository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import pe.edu.upc.vacapp.subscription.data.remote.SubscriptionService
+import pe.edu.upc.vacapp.subscription.domain.model.CheckoutSession
 import pe.edu.upc.vacapp.subscription.domain.model.Plan
 import pe.edu.upc.vacapp.subscription.domain.model.Subscription
 import retrofit2.Response
@@ -31,6 +32,27 @@ open class SubscriptionRepository(
 
     open suspend fun activatePlus(): Subscription = withContext(Dispatchers.IO) {
         unwrap(service.activatePlus(), "activating the Plus plan").toDomain()
+    }
+
+    /** Opens a Plus checkout and returns the session to confirm after the card form. */
+    open suspend fun createPlusCheckout(): CheckoutSession = withContext(Dispatchers.IO) {
+        unwrap(service.createPlusCheckout(), "starting the Plus checkout").toDomain()
+    }
+
+    /** Opens an additional-collar checkout. */
+    open suspend fun createCollarCheckout(): CheckoutSession = withContext(Dispatchers.IO) {
+        unwrap(service.createCollarCheckout(), "starting the collar checkout").toDomain()
+    }
+
+    /** Confirms the checkout (simulated payment) by its session ref. The confirm body
+     *  is ignored, so success is decided from the HTTP status (not unwrapped). */
+    open suspend fun confirmCheckout(sessionRef: String): Unit = withContext(Dispatchers.IO) {
+        val response = service.confirmCheckout(sessionRef)
+        if (!response.isSuccessful) {
+            if (response.code() == 401) throw SubscriptionSessionExpiredException()
+            val error = response.errorBody()?.string().orEmpty()
+            throw Exception("Error confirming the payment: ${error.ifBlank { response.code().toString() }}")
+        }
     }
 
     /** Cancels Plus; the user falls back to Free. */

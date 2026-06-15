@@ -55,10 +55,12 @@ object AlertNotifier {
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
 
+        // Account-level alerts (e.g. collar-return) have no bovine — label by category instead.
+        val scope = if (alert.isAccountLevel) alert.alertTypeLabel else "Bovino ${alert.bovineId}"
         val title = when {
-            alert.isRed    -> "🔴 Alerta crítica · Bovino ${alert.bovineId}"
-            alert.isYellow -> "🟡 Alerta · Bovino ${alert.bovineId}"
-            else           -> "Alerta · Bovino ${alert.bovineId}"
+            alert.isRed    -> "🔴 Alerta crítica · $scope"
+            alert.isYellow -> "🟡 Alerta · $scope"
+            else           -> "Alerta · $scope"
         }
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
