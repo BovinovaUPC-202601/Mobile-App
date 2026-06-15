@@ -103,7 +103,7 @@ fun AlertItemCard(alert: Alert, onMarkAsRead: () -> Unit) {
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                AssistChip(onClick = {}, label = { Text(alert.alertType, fontSize = 11.sp) })
+                AssistChip(onClick = {}, label = { Text(alert.alertTypeLabel, fontSize = 11.sp) })
                 AssistChip(onClick = {}, label = { Text(alert.urgencyLevel, fontSize = 11.sp) })
                 AssistChip(
                     onClick = {},
@@ -111,7 +111,7 @@ fun AlertItemCard(alert: Alert, onMarkAsRead: () -> Unit) {
                 )
             }
 
-            Text("Bovino ID: ${alert.bovineId} · ${alert.createdAt.take(16).replace("T", " ")}",
+            Text("${if (alert.isAccountLevel) "Cuenta" else "Bovino ID: ${alert.bovineId}"} · ${alert.createdAt.take(16).replace("T", " ")}",
                 fontSize = 11.sp, color = Color.Gray)
 
             if (alert.isUnread) {

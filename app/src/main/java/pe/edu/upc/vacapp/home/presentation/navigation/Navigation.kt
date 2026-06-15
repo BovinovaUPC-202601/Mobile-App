@@ -69,9 +69,9 @@ private val drawerItems: List<DrawerItem> = listOf(
     DrawerItem("animals", "Animals", Icons.Default.Pets),
     DrawerItem("campaign", "Campaigns", Icons.Default.MedicalServices),
     DrawerItem("barn", "Barns", Icons.Default.Warehouse),
-    DrawerItem("monitoring", "Monitoring", Icons.Default.Analytics),
+    DrawerItem("monitoring", "Monitoring", Icons.Default.Analytics, plusOnly = true),
     DrawerItem("alerts", "Alerts", Icons.Default.Notifications),
-    DrawerItem("ai-assistant", "AI Assistant", Icons.Default.AutoAwesome),
+    DrawerItem("ai-assistant", "AI Assistant", Icons.Default.AutoAwesome, plusOnly = true),
     DrawerItem("subscription", "Subscription", Icons.Default.WorkspacePremium)
 )
 
@@ -105,10 +105,26 @@ fun Navigation(
     val homeViewModel = getHomeViewModel()
     val monitoringViewModel = getMonitoringViewModel()
     val alertViewModel = getAlertViewModel()
+    val drawerSubscriptionViewModel = getSubscriptionViewModel()
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
     val userInfo by homeViewModel.userInfo.collectAsState()
+    val currentSubscription by drawerSubscriptionViewModel.current.collectAsState()
+    // Free/Plus badge in the drawer header (mirrors the web sidebar badge).
+    val planLabel = currentSubscription?.let { if (it.isPlusActive) "Plus" else "Free" } ?: "Free"
+    // Reload the plan on every screen change so the gating reflects upgrades/downgrades
+    // (cancel happens on a different VM instance, so we re-fetch here).
+    LaunchedEffect(currentRoute) { drawerSubscriptionViewModel.load() }
+
+    // Guard: if a Free user is sitting on a Plus-only screen (e.g. after a downgrade),
+    // bounce them back to Home. Only acts once we know the plan (subscription != null).
+    LaunchedEffect(currentRoute, currentSubscription) {
+        val plusRoutes = setOf("monitoring", "ai-assistant")
+        if (currentSubscription?.isPlusActive == false && currentRoute in plusRoutes) {
+            navController.navigate("home") { launchSingleTop = true }
+        }
+    }
     val pageTitle = pageTitleFor(currentRoute)
     val greeting = "Hello, ${userInfo.name.ifBlank { "there" }}"
 
@@ -130,13 +146,16 @@ fun Navigation(
         drawerContent = {
             AppDrawer(
                 userName = userInfo.name,
-                items = drawerItems,
+                // Hide Plus-only features (IA, Monitoring) once we know the user isn't an
+                // active Plus. While the subscription is still loading (null) we keep them.
+                items = drawerItems.filter { !it.plusOnly || currentSubscription?.isPlusActive != false },
                 activeRoute = currentRoute,
                 onItemClick = { item -> scope.launch { drawerState.close() }; navigateTo(item.route) },
                 onSignOut = {
                     JwtStorage.clearToken()
                     goToLogin()
-                }
+                },
+                plan = planLabel
             )
         }
     ) {
