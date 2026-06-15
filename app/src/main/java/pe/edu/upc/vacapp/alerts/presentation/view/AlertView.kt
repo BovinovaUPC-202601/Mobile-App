@@ -15,12 +15,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import pe.edu.upc.vacapp.alerts.domain.model.Alert
 import pe.edu.upc.vacapp.alerts.presentation.viewmodel.AlertViewModel
+import pe.edu.upc.vacapp.alerts.presentation.viewmodel.BovineOption
 import pe.edu.upc.vacapp.ui.theme.Color as AppColor
 
 @Composable
 fun AlertView(viewModel: AlertViewModel, userId: Int) {
-    val alerts  by viewModel.alerts.collectAsState()
-    val loading by viewModel.loading.collectAsState()
+    val alerts        by viewModel.filteredAlerts.collectAsState()
+    val loading       by viewModel.loading.collectAsState()
+    val bovineOptions by viewModel.bovineOptions.collectAsState()
+    val selectedId    by viewModel.selectedBovineId.collectAsState()
+    val names         by viewModel.namesByBovineId.collectAsState()
 
     LaunchedEffect(userId) {
         viewModel.loadAlerts(userId)
@@ -44,6 +48,12 @@ fun AlertView(viewModel: AlertViewModel, userId: Int) {
             }
         }
 
+        BovineFilterDropdown(
+            options = bovineOptions,
+            selectedId = selectedId,
+            onSelect = { viewModel.selectBovine(it) }
+        )
+
         if (loading) {
             Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator(color = AppColor.Green)
@@ -51,19 +61,77 @@ fun AlertView(viewModel: AlertViewModel, userId: Int) {
         }
 
         if (!loading && alerts.isEmpty()) {
-            Text("Sin alertas registradas.", color = Color.Gray, fontSize = 14.sp)
+            Text(
+                text = if (selectedId == null) "Sin alertas registradas."
+                       else "Este bovino no tiene alertas.",
+                color = Color.Gray,
+                fontSize = 14.sp
+            )
         }
 
         LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             items(alerts) { alert ->
-                AlertItemCard(alert = alert, onMarkAsRead = { viewModel.markAsRead(alert.id) })
+                AlertItemCard(
+                    alert = alert,
+                    bovineName = alert.bovineId?.let { names[it] },
+                    onMarkAsRead = { viewModel.markAsRead(alert.id) }
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun BovineFilterDropdown(
+    options: List<BovineOption>,
+    selectedId: Int?,
+    onSelect: (Int?) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val allLabel = "Todos los bovinos"
+    val selectedLabel = options.find { it.id == selectedId }?.name ?: allLabel
+
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = it }
+    ) {
+        OutlinedTextField(
+            value = selectedLabel,
+            onValueChange = {},
+            readOnly = true,
+            label = { Text("Filtrar por bovino") },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .menuAnchor(MenuAnchorType.PrimaryNotEditable)
+        )
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            DropdownMenuItem(
+                text = { Text(allLabel) },
+                onClick = {
+                    onSelect(null)
+                    expanded = false
+                }
+            )
+            options.forEach { option ->
+                DropdownMenuItem(
+                    text = { Text(option.name) },
+                    onClick = {
+                        onSelect(option.id)
+                        expanded = false
+                    }
+                )
             }
         }
     }
 }
 
 @Composable
-fun AlertItemCard(alert: Alert, onMarkAsRead: () -> Unit) {
+fun AlertItemCard(alert: Alert, bovineName: String?, onMarkAsRead: () -> Unit) {
     val bgColor = when {
         alert.isRed    -> Color(0xFFFFEBEE)
         alert.isYellow -> Color(0xFFFFFDE7)
@@ -111,7 +179,12 @@ fun AlertItemCard(alert: Alert, onMarkAsRead: () -> Unit) {
                 )
             }
 
-            Text("${if (alert.isAccountLevel) "Cuenta" else "Bovino ID: ${alert.bovineId}"} · ${alert.createdAt.take(16).replace("T", " ")}",
+            val bovineLabel = when {
+                alert.isAccountLevel -> "Cuenta"
+                bovineName != null   -> "$bovineName (ID: ${alert.bovineId})"
+                else                 -> "Bovino ID: ${alert.bovineId}"
+            }
+            Text("$bovineLabel · ${alert.createdAt.take(16).replace("T", " ")}",
                 fontSize = 11.sp, color = Color.Gray)
 
             if (alert.isUnread) {
