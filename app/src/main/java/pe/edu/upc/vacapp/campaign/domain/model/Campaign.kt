@@ -8,4 +8,6 @@ data class Campaign(
     val description: String = "",
     val startDate: LocalDate = DateUtils.today(),
     val endDate:  LocalDate = DateUtils.today(),
+    val stableIds: List<Int> = emptyList(),
+    val stableNames: List<String> = emptyList(),
 )

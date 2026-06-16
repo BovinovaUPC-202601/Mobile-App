@@ -1,8 +1,6 @@
 package pe.edu.upc.vacapp.campaign.presentation.view
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,10 +14,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -71,6 +71,8 @@ fun FormCampaignView(
     val isLoading by viewModel.isLoading.collectAsState()
     val addSuccess by viewModel.addSuccess.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
+    val barns by viewModel.barn.collectAsState()
+    var selectedBarnIds by remember { mutableStateOf(setOf<Int>()) }
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(Unit) {
@@ -101,13 +103,16 @@ fun FormCampaignView(
                 localError = "La fecha de fin debe ser posterior a la fecha de inicio."
             } else if (endDate.isBefore(DateUtils.today())) {
                 localError = "La fecha de fin debe ser hoy o una fecha futura."
+            } else if (selectedBarnIds.isEmpty()) {
+                localError = "Selecciona al menos un establo."
             } else {
                 viewModel.addCanpaing(
                     Campaign(
                         name = name,
                         description = description,
                         startDate = startDate,
-                        endDate = endDate
+                        endDate = endDate,
+                        stableIds = selectedBarnIds.toList(),
                     )
                 )
             }
@@ -174,6 +179,17 @@ fun FormCampaignView(
                             keyboardType = KeyboardType.Text
                         )
 
+                        BarnMultiSelectField(
+                            barns = barns,
+                            selectedIds = selectedBarnIds,
+                            onToggle = { id ->
+                                selectedBarnIds = if (id in selectedBarnIds)
+                                    selectedBarnIds - id
+                                else
+                                    selectedBarnIds + id
+                            }
+                        )
+
                         HorizontalDivider(
                             color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
                         )
@@ -218,6 +234,99 @@ fun FormCampaignView(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun BarnMultiSelectField(
+    barns: List<pe.edu.upc.vacapp.barn.domain.model.Barn>,
+    selectedIds: Set<Int>,
+    onToggle: (Int) -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val label = if (selectedIds.isEmpty()) "Seleccionar establos"
+        else "${selectedIds.size} establo${if (selectedIds.size != 1) "s" else ""} seleccionado${if (selectedIds.size != 1) "s" else ""}"
+
+    Surface(
+        onClick = { expanded = true },
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(56.dp),
+        shape = RoundedCornerShape(12.dp),
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        border = androidx.compose.foundation.BorderStroke(
+            1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+        )
+    ) {
+        Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column {
+                    Text(
+                        text = "Establos",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = label,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = if (selectedIds.isNotEmpty()) MaterialTheme.colorScheme.onSurface
+                        else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                    )
+                }
+                Icon(
+                    imageVector = Icons.Filled.ArrowDropDown,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                if (barns.isEmpty()) {
+                    DropdownMenuItem(
+                        onClick = { expanded = false },
+                        text = {
+                            Text(
+                                text = "No hay establos disponibles",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    )
+                } else {
+                    barns.forEach { barn ->
+                        val checked = barn.id in selectedIds
+                        DropdownMenuItem(
+                            onClick = {
+                                onToggle(barn.id)
+                            },
+                            text = {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    androidx.compose.material3.Checkbox(
+                                        checked = checked,
+                                        onCheckedChange = { onToggle(barn.id) }
+                                    )
+                                    Text(
+                                        text = barn.name,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
+                            }
+                        )
                     }
                 }
             }

@@ -68,4 +68,8 @@ class CampaignViewModel(
     fun resetErrorMessage() {
         _errorMessage.value = null
     }
+
+    init {
+        getBarns()
+    }
 }
