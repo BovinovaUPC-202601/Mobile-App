@@ -138,7 +138,7 @@ private fun DrawerHeader(userName: String, plan: String) {
                 )
             }
             Text(
-                text = userName.ifBlank { "User" },
+                text = userName.ifBlank { "Usuario" },
                 style = MaterialTheme.typography.titleMedium,
                 color = Cream95,
                 fontWeight = FontWeight.SemiBold,
@@ -162,7 +162,7 @@ private fun PlanBadge(plan: String) {
             .padding(horizontal = 8.dp, vertical = 2.dp)
     ) {
         Text(
-            text = if (isPlus) "Plus" else "Free",
+            text = if (isPlus) "Plus" else "Gratis",
             style = MaterialTheme.typography.labelSmall,
             color = fg,
             fontWeight = FontWeight.Bold
@@ -233,7 +233,7 @@ private fun DrawerFooter(onSignOut: () -> Unit) {
             modifier = Modifier.size(20.dp)
         )
         Text(
-            text = "Log out",
+            text = "Cerrar sesión",
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )

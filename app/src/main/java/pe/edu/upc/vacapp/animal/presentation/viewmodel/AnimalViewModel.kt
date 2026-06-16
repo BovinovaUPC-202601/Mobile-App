@@ -45,9 +45,9 @@ class AnimalViewModel(
                 animalRepository.addAnimal(animal)
                 _addAnimalSuccess.value = true  // <-- Success
             } catch (e: IllegalArgumentException) {
-                _errorMessage.value = e.message ?: "Error adding animal"
+                _errorMessage.value = e.message ?: "Error al añadir animal"
             } catch (e: Exception) {
-                _errorMessage.value = "Unknown error when adding the animal"
+                _errorMessage.value = "Error desconocido al añadir el animal"
             } finally {
                 _isLoading.value = false
             }
@@ -87,7 +87,7 @@ class AnimalViewModel(
             try {
                 _updatedAnimal.value = animalRepository.updateAnimal(animal)
             } catch (e: Exception) {
-                _errorMessage.value = e.message ?: "Error updating animal"
+                _errorMessage.value = e.message ?: "Error al actualizar animal"
             } finally {
                 _isLoading.value = false
             }

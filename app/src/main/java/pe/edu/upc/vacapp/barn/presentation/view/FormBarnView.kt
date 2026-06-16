@@ -79,7 +79,7 @@ fun FormBarnView(
             verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
             Text(
-                text = "Add barn",
+                text = "Añadir establo",
                 style = MaterialTheme.typography.headlineSmall,
                 color = MaterialTheme.colorScheme.onSurface
             )
@@ -87,21 +87,21 @@ fun FormBarnView(
             AuthTextField(
                 value = name,
                 onValueChange = { name = it },
-                label = "Name",
+                label = "Nombre",
                 imeAction = ImeAction.Next
             )
 
             AuthTextField(
                 value = limit,
                 onValueChange = { input -> if (input.all(Char::isDigit)) limit = input },
-                label = "Capacity (bovines)",
+                label = "Capacidad (bovinos)",
                 keyboardType = KeyboardType.Number,
                 imeAction = ImeAction.Done,
                 onImeAction = { submit() }
             )
 
             PrimaryButton(
-                label = "Save barn",
+                label = "Guardar establo",
                 onClick = { submit() },
                 isLoading = isLoading,
                 enabled = name.isNotBlank() && limit.isNotBlank()
@@ -115,7 +115,7 @@ fun FormBarnView(
                 enabled = !isLoading
             ) {
                 Text(
-                    text = "Cancel",
+                    text = "Cancelar",
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

@@ -115,7 +115,7 @@ fun AnimalDetails(
                         }
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = animal.name.ifBlank { "Unnamed animal" },
+                                text = animal.name.ifBlank { "Animal sin nombre" },
                                 style = MaterialTheme.typography.headlineSmall,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
@@ -151,11 +151,11 @@ fun AnimalDetails(
 
                     // Details grid
                     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                        DetailRow(label = "Birthdate", value = animal.birthDate.ifBlank { "—" })
-                        DetailRow(label = "Barn", value = animal.barnName.ifBlank { "—" })
+                        DetailRow(label = "Fecha de nacimiento", value = animal.birthDate.ifBlank { "—" })
+                        DetailRow(label = "Establo", value = animal.barnName.ifBlank { "—" })
                         DetailRow(
-                            label = "Age",
-                            value = if (animal.age > 0) "${animal.age} months" else "—"
+                            label = "Edad",
+                            value = if (animal.age > 0) "${animal.age} meses" else "—"
                         )
                         ThresholdSection(animal = animal, animalViewModel = animalViewModel)
                     }
@@ -215,11 +215,11 @@ private fun ThresholdSection(
 
     if (!editing) {
         DetailRow(
-            label = "Temperature range",
+            label = "Rango de temperatura",
             value = "${current.minTemperature} – ${current.maxTemperature} °C"
         )
         DetailRow(
-            label = "Heart rate range",
+            label = "Rango de pulso",
             value = "${current.minHeartRate} – ${current.maxHeartRate} BPM"
         )
         if (animalViewModel != null) {

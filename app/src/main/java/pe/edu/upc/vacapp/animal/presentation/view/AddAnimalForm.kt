@@ -188,7 +188,7 @@ private fun FormAnimalView(
             verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
             Text(
-                text = "Add animal",
+                text = "Añadir animal",
                 style = MaterialTheme.typography.headlineSmall,
                 color = MaterialTheme.colorScheme.onSurface
             )
@@ -222,7 +222,7 @@ private fun FormAnimalView(
                             modifier = Modifier.size(40.dp)
                         )
                         Text(
-                            text = "Tap to add photo",
+                            text = "Toca para añadir foto",
                             style = MaterialTheme.typography.bodyMedium,
                             color = Emerald40
                         )
@@ -237,13 +237,13 @@ private fun FormAnimalView(
             ) {
                 ImageActionButton(
                     icon = Icons.Filled.CameraAlt,
-                    label = "Camera",
+                    label = "Cámara",
                     onClick = { launchCamera() },
                     modifier = Modifier.weight(1f)
                 )
                 ImageActionButton(
                     icon = Icons.Filled.PhotoLibrary,
-                    label = "Gallery",
+                    label = "Galería",
                     onClick = { galleryLauncher.launch("image/*") },
                     modifier = Modifier.weight(1f)
                 )
@@ -253,7 +253,7 @@ private fun FormAnimalView(
             AuthTextField(
                 value = animal.name,
                 onValueChange = { animal = animal.copy(name = it) },
-                label = "Name",
+                label = "Nombre",
                 imeAction = ImeAction.Next
             )
 
@@ -298,7 +298,7 @@ private fun FormAnimalView(
 
             // Thresholds
             Text(
-                text = "Thresholds",
+                text = "Umbrales",
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -310,14 +310,14 @@ private fun FormAnimalView(
                 AuthTextField(
                     value = formatDouble(animal.minTemperature),
                     onValueChange = { animal = animal.copy(minTemperature = it.toDoubleOrNull() ?: 0.0) },
-                    label = "Temp. Min (°C)",
+                    label = "Temp. mín (°C)",
                     keyboardType = KeyboardType.Decimal,
                     modifier = Modifier.weight(1f)
                 )
                 AuthTextField(
                     value = formatDouble(animal.maxTemperature),
                     onValueChange = { animal = animal.copy(maxTemperature = it.toDoubleOrNull() ?: 0.0) },
-                    label = "Temp. Max (°C)",
+                    label = "Temp. máx (°C)",
                     keyboardType = KeyboardType.Decimal,
                     modifier = Modifier.weight(1f)
                 )
@@ -330,14 +330,14 @@ private fun FormAnimalView(
                 AuthTextField(
                     value = formatInt(animal.minHeartRate),
                     onValueChange = { animal = animal.copy(minHeartRate = it.toIntOrNull() ?: 0) },
-                    label = "HR Min (BPM)",
+                    label = "Pulso mín (BPM)",
                     keyboardType = KeyboardType.Number,
                     modifier = Modifier.weight(1f)
                 )
                 AuthTextField(
                     value = formatInt(animal.maxHeartRate),
                     onValueChange = { animal = animal.copy(maxHeartRate = it.toIntOrNull() ?: 0) },
-                    label = "HR Max (BPM)",
+                    label = "Pulso máx (BPM)",
                     keyboardType = KeyboardType.Number,
                     modifier = Modifier.weight(1f)
                 )
@@ -363,22 +363,22 @@ private fun FormAnimalView(
 
             // Save
             PrimaryButton(
-                label = "Save animal",
+                label = "Guardar animal",
                 onClick = {
                     localError = ""
                     val a = animal
                     when {
                         a.minTemperature > a.maxTemperature -> {
-                            localError = "Min temp cannot exceed max temp."
+                            localError = "La temp. mín no puede superar la temp. máx."
                         }
                         a.minHeartRate > a.maxHeartRate -> {
-                            localError = "Min heart rate cannot exceed max heart rate."
+                            localError = "El pulso mín no puede superar el pulso máx."
                         }
                         a.minTemperature < MIN_TEMP_LIMIT || a.maxTemperature > MAX_TEMP_LIMIT -> {
-                            localError = "Temperature must be between $MIN_TEMP_LIMIT and $MAX_TEMP_LIMIT °C."
+                            localError = "La temperatura debe estar entre $MIN_TEMP_LIMIT y $MAX_TEMP_LIMIT °C."
                         }
                         a.minHeartRate < MIN_HR_LIMIT || a.maxHeartRate > MAX_HR_LIMIT -> {
-                            localError = "Heart rate must be between $MIN_HR_LIMIT and $MAX_HR_LIMIT BPM."
+                            localError = "El pulso debe estar entre $MIN_HR_LIMIT y $MAX_HR_LIMIT BPM."
                         }
                         else -> viewmodel.addAnimal(a)
                     }
@@ -394,7 +394,7 @@ private fun FormAnimalView(
                 enabled = !isLoading
             ) {
                 Text(
-                    text = "Cancel",
+                    text = "Cancelar",
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -499,12 +499,12 @@ private fun DatePickerField(
         ) {
             Column {
                 Text(
-                    text = "Birthdate",
+                    text = "Fecha de nacimiento",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
-                    text = date.ifBlank { "Select date" },
+                    text = date.ifBlank { "Seleccionar fecha" },
                     style = MaterialTheme.typography.bodyLarge,
                     color = if (date.isBlank()) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                     else MaterialTheme.colorScheme.onSurface
@@ -547,12 +547,12 @@ private fun BarnDropdown(
             ) {
                 Column {
                     Text(
-                        text = "Barn",
+                        text = "Establo",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        text = selectedBarn?.name ?: "Select barn",
+                        text = selectedBarn?.name ?: "Seleccionar establo",
                         style = MaterialTheme.typography.bodyLarge,
                         color = if (selectedBarn != null) MaterialTheme.colorScheme.onSurface
                         else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
@@ -610,12 +610,12 @@ private fun BreedDropdown(
             ) {
                 Column {
                     Text(
-                        text = "Breed",
+                        text = "Raza",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        text = selectedBreed?.name ?: "Select breed",
+                        text = selectedBreed?.name ?: "Seleccionar raza",
                         style = MaterialTheme.typography.bodyLarge,
                         color = if (selectedBreed != null) MaterialTheme.colorScheme.onSurface
                         else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)

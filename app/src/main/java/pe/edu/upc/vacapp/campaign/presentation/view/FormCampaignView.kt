@@ -117,7 +117,7 @@ fun FormCampaignView(
                     verticalArrangement = Arrangement.spacedBy(18.dp)
                 ) {
                     Text(
-                        text = "Add campaign",
+                        text = "Añadir campaña",
                         style = MaterialTheme.typography.headlineSmall,
                         color = MaterialTheme.colorScheme.onSurface
                     )
@@ -125,14 +125,14 @@ fun FormCampaignView(
                     AuthTextField(
                         value = name,
                         onValueChange = { name = it },
-                        label = "Name",
+                        label = "Nombre",
                         imeAction = ImeAction.Next
                     )
 
                     AuthTextField(
                         value = description,
                         onValueChange = { description = it },
-                        label = "Description",
+                        label = "Descripción",
                         imeAction = ImeAction.Next,
                         keyboardType = KeyboardType.Text
                     )
@@ -142,19 +142,19 @@ fun FormCampaignView(
                     )
 
                     CampaignDateField(
-                        label = "Start date",
+                        label = "Fecha de inicio",
                         date = startDate,
                         onDateChange = { startDate = it }
                     )
 
                     CampaignDateField(
-                        label = "End date",
+                        label = "Fecha de fin",
                         date = endDate,
                         onDateChange = { endDate = it }
                     )
 
                     PrimaryButton(
-                        label = "Save campaign",
+                        label = "Guardar campaña",
                         onClick = { submit() },
                         isLoading = isLoading,
                         enabled = name.isNotBlank()
@@ -168,7 +168,7 @@ fun FormCampaignView(
                         enabled = !isLoading
                     ) {
                         Text(
-                            text = "Cancel",
+                            text = "Cancelar",
                             style = MaterialTheme.typography.labelLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )

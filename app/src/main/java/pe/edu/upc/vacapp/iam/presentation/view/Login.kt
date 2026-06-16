@@ -198,7 +198,7 @@ private fun FormCard(
             AuthTextField(
                 value = email,
                 onValueChange = { if (!it.contains(' ')) onEmailChange(it) },
-                label = "Email",
+                label = "Correo electrónico",
                 leadingIcon = painterResource(id = R.drawable.envelope_simple),
                 keyboardType = KeyboardType.Email,
                 imeAction = ImeAction.Next
@@ -207,7 +207,7 @@ private fun FormCard(
             AuthTextField(
                 value = password,
                 onValueChange = onPasswordChange,
-                label = "Password",
+                label = "Contraseña",
                 leadingIcon = painterResource(id = R.drawable.lock_key),
                 isPassword = true,
                 imeAction = ImeAction.Done,
@@ -215,7 +215,7 @@ private fun FormCard(
             )
 
             PrimaryButton(
-                label = "Sign In",
+                label = "Iniciar sesión",
                 onClick = onSubmit,
                 isLoading = isLoading,
                 enabled = !isLoading
@@ -228,14 +228,14 @@ private fun FormCard(
 private fun HeaderBlock() {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(
-            text = "Welcome back",
+            text = "Bienvenido de nuevo",
             style = MaterialTheme.typography.headlineSmall.copy(
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
             )
         )
         Text(
-            text = "Sign in to keep your ranch running smoothly.",
+            text = "Inicia sesión para mantener tu rancho funcionando sin problemas.",
             style = MaterialTheme.typography.bodyMedium,
             color = OnSurfaceVariantLight
         )
@@ -250,7 +250,7 @@ private fun CreateAccountRow(onClick: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = "New to VacApp?",
+            text = "¿Nuevo en VacApp?",
             style = MaterialTheme.typography.bodyMedium,
             color = OnSurfaceVariantLight,
             textAlign = TextAlign.Center
@@ -260,7 +260,7 @@ private fun CreateAccountRow(onClick: () -> Unit) {
             contentPadding = PaddingValues(horizontal = 6.dp)
         ) {
             Text(
-                text = "Create account",
+                text = "Crear cuenta",
                 style = MaterialTheme.typography.labelLarge.copy(
                     fontWeight = FontWeight.SemiBold
                 ),
