@@ -1,11 +1,11 @@
 package pe.edu.upc.vacapp.barn.data.repository
 
-import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import pe.edu.upc.vacapp.barn.data.model.CreateBarnRequest
 import pe.edu.upc.vacapp.barn.data.remote.BarnService
 import pe.edu.upc.vacapp.barn.domain.model.Barn
+import pe.edu.upc.vacapp.shared.data.remote.errorMessage
 
 class BarnRepository(
     private val barnService: BarnService
@@ -16,7 +16,9 @@ class BarnRepository(
         val data = CreateBarnRequest.fromBarn(barn)
         val response = barnService.createBarn(data)
         if (response.isSuccessful) {
-            Log.d("prueba", response.body().toString())
+            response.body()
+        } else {
+            throw Exception(response.errorMessage())
         }
     }
 
@@ -29,6 +31,6 @@ class BarnRepository(
             } ?: emptyList()
         }
 
-        return@withContext emptyList()
+        throw Exception(response.errorMessage())
     }
 }

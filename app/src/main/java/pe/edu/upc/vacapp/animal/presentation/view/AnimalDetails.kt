@@ -213,6 +213,12 @@ private fun ThresholdSection(
     var minHr by remember(animal.id) { mutableStateOf(animal.minHeartRate.toString()) }
     var maxHr by remember(animal.id) { mutableStateOf(animal.maxHeartRate.toString()) }
 
+    LaunchedEffect(current) {
+        if (editing && current != animal) {
+            editing = false
+        }
+    }
+
     if (!editing) {
         DetailRow(
             label = "Rango de temperatura",
@@ -259,7 +265,6 @@ private fun ThresholdSection(
                         maxHeartRate = maxHr.toIntOrNull() ?: animal.maxHeartRate
                     )
                 )
-                editing = false
             },
             isLoading = isLoading,
             showTrailingIcon = false,

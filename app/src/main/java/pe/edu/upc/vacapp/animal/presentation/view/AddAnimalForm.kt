@@ -64,10 +64,12 @@ import pe.edu.upc.vacapp.animal.presentation.viewmodel.AnimalViewModel
 import pe.edu.upc.vacapp.barn.domain.model.Barn
 import pe.edu.upc.vacapp.iam.presentation.view.components.AuthTextField
 import pe.edu.upc.vacapp.iam.presentation.view.components.PrimaryButton
+import pe.edu.upc.vacapp.shared.util.DateUtils
 import pe.edu.upc.vacapp.ui.theme.Emerald40
 import pe.edu.upc.vacapp.ui.theme.Emerald90
 import java.io.File
 import java.util.Calendar
+import java.util.TimeZone
 
 @Composable
 fun AddAnimalForm(
@@ -114,6 +116,7 @@ private fun FormAnimalView(
     val errorMessage by viewmodel.errorMessage.collectAsState()
     val barns by viewmodel.barn.collectAsState()
     val breeds by viewmodel.breeds.collectAsState()
+    val animals by viewmodel.animals.collectAsState()
 
     var animal by remember { mutableStateOf(Animal()) }
     var imageUri by remember { mutableStateOf<Uri?>(null) }
@@ -292,6 +295,7 @@ private fun FormAnimalView(
             // Barn dropdown
             BarnDropdown(
                 barns = barns,
+                animals = animals,
                 selectedBarnId = animal.barnId,
                 onBarnSelected = { animal = animal.copy(barnId = it) }
             )
@@ -368,19 +372,31 @@ private fun FormAnimalView(
                     localError = ""
                     val a = animal
                     when {
-                        a.minTemperature > a.maxTemperature -> {
-                            localError = "La temp. mín no puede superar la temp. máx."
+                        a.barnId == 0 -> localError = "Debes seleccionar un establo."
+                        a.breed.isBlank() -> localError = "Debes seleccionar una raza."
+                        a.birthDate.isBlank() -> localError = "Debes seleccionar una fecha de nacimiento."
+                        else -> {
+                            val birthLocalDate = try {
+                                LocalDate.parse(a.birthDate, DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                            } catch (_: Exception) { null }
+                            if (birthLocalDate == null || !birthLocalDate.isBefore(DateUtils.today())) {
+                                localError = "La fecha de nacimiento debe ser anterior a hoy."
+                            } else when {
+                                a.minTemperature > a.maxTemperature -> {
+                                    localError = "La temp. mín no puede superar la temp. máx."
+                                }
+                                a.minHeartRate > a.maxHeartRate -> {
+                                    localError = "El pulso mín no puede superar el pulso máx."
+                                }
+                                a.minTemperature < MIN_TEMP_LIMIT || a.maxTemperature > MAX_TEMP_LIMIT -> {
+                                    localError = "La temperatura debe estar entre $MIN_TEMP_LIMIT y $MAX_TEMP_LIMIT °C."
+                                }
+                                a.minHeartRate < MIN_HR_LIMIT || a.maxHeartRate > MAX_HR_LIMIT -> {
+                                    localError = "El pulso debe estar entre $MIN_HR_LIMIT y $MAX_HR_LIMIT BPM."
+                                }
+                                else -> viewmodel.addAnimal(a)
+                            }
                         }
-                        a.minHeartRate > a.maxHeartRate -> {
-                            localError = "El pulso mín no puede superar el pulso máx."
-                        }
-                        a.minTemperature < MIN_TEMP_LIMIT || a.maxTemperature > MAX_TEMP_LIMIT -> {
-                            localError = "La temperatura debe estar entre $MIN_TEMP_LIMIT y $MAX_TEMP_LIMIT °C."
-                        }
-                        a.minHeartRate < MIN_HR_LIMIT || a.maxHeartRate > MAX_HR_LIMIT -> {
-                            localError = "El pulso debe estar entre $MIN_HR_LIMIT y $MAX_HR_LIMIT BPM."
-                        }
-                        else -> viewmodel.addAnimal(a)
                     }
                 },
                 isLoading = isLoading,
@@ -469,7 +485,7 @@ private fun DatePickerField(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    val calendar = Calendar.getInstance()
+    val peruCal = Calendar.getInstance(TimeZone.getTimeZone("America/Lima"))
     val datePickerDialog = remember {
         android.app.DatePickerDialog(
             context,
@@ -477,10 +493,12 @@ private fun DatePickerField(
                 val selected = LocalDate.of(year, month + 1, dayOfMonth)
                 onDateChange(selected.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
             },
-            calendar.get(Calendar.YEAR),
-            calendar.get(Calendar.MONTH),
-            calendar.get(Calendar.DAY_OF_MONTH)
-        )
+            peruCal.get(Calendar.YEAR),
+            peruCal.get(Calendar.MONTH),
+            peruCal.get(Calendar.DAY_OF_MONTH)
+        ).apply {
+            datePicker.maxDate = peruCal.timeInMillis
+        }
     }
 
     Surface(
@@ -523,6 +541,7 @@ private fun DatePickerField(
 @Composable
 private fun BarnDropdown(
     barns: List<Barn>,
+    animals: List<Animal>,
     selectedBarnId: Int,
     onBarnSelected: (Int) -> Unit,
     modifier: Modifier = Modifier
@@ -570,12 +589,25 @@ private fun BarnDropdown(
                 onDismissRequest = { expanded = false }
             ) {
                 barns.forEach { barn ->
+                    val currentCount = animals.count { it.barnId == barn.id }
+                    val limit = barn.limit.toIntOrNull() ?: 0
+                    val label = if (limit > 0) "${barn.name} ($currentCount/$limit)" else barn.name
+                    val isFull = limit > 0 && currentCount >= limit
                     DropdownMenuItem(
                         onClick = {
-                            onBarnSelected(barn.id)
-                            expanded = false
+                            if (!isFull) {
+                                onBarnSelected(barn.id)
+                                expanded = false
+                            }
                         },
-                        text = { Text(barn.name) }
+                        text = {
+                            Text(
+                                text = label,
+                                color = if (isFull) MaterialTheme.colorScheme.error
+                                else MaterialTheme.colorScheme.onSurface
+                            )
+                        },
+                        enabled = !isFull
                     )
                 }
             }

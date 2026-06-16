@@ -42,8 +42,18 @@ class AnimalViewModel(
         viewModelScope.launch {
             _isLoading.value = true
             try {
+                val barn = _barns.value.find { it.id == animal.barnId }
+                val limit = barn?.limit?.toIntOrNull()
+                if (limit != null && limit > 0) {
+                    val currentCount = _animals.value.count { it.barnId == animal.barnId }
+                    if (currentCount >= limit) {
+                        throw IllegalArgumentException(
+                            "El establo \"${barn.name}\" ha alcanzado su capacidad máxima ($limit)."
+                        )
+                    }
+                }
                 animalRepository.addAnimal(animal)
-                _addAnimalSuccess.value = true  // <-- Success
+                _addAnimalSuccess.value = true
             } catch (e: IllegalArgumentException) {
                 _errorMessage.value = e.message ?: "Error al añadir animal"
             } catch (e: Exception) {
@@ -60,19 +70,31 @@ class AnimalViewModel(
     //
     fun getAllAnimals() {
         viewModelScope.launch {
-            _animals.value = animalRepository.getAllAnimals()
+            try {
+                _animals.value = animalRepository.getAllAnimals()
+            } catch (e: Exception) {
+                _errorMessage.value = e.message ?: "Error al obtener animales"
+            }
         }
     }
     //
     fun getBarns() {
         viewModelScope.launch {
-            _barns.value = animalRepository.getBarns()
+            try {
+                _barns.value = animalRepository.getBarns()
+            } catch (e: Exception) {
+                _errorMessage.value = e.message ?: "Error al obtener establos"
+            }
         }
     }
 
     fun getBreeds() {
         viewModelScope.launch {
-            _breeds.value = animalRepository.getBreeds()
+            try {
+                _breeds.value = animalRepository.getBreeds()
+            } catch (e: Exception) {
+                _errorMessage.value = e.message ?: "Error al obtener razas"
+            }
         }
     }
 

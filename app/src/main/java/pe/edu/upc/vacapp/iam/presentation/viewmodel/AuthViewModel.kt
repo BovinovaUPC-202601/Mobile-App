@@ -57,14 +57,23 @@ class AuthViewModel(
                 _isLoading.value = true
                 _loginSuccess.value = authRepository.login(_user.value)
                 if (_loginSuccess.value != true) {
-                    _errorMessage.value = "Email o contraseña incorrectos."
+                    _errorMessage.value = "Error al iniciar sesión: respuesta inesperada del servidor"
                 }
             } catch (e: Exception) {
-                _errorMessage.value = "Error de autenticación: ${e.message}"
-            }
-            finally {
+                _errorMessage.value = translateError(e.message)
+            } finally {
                 _isLoading.value = false
             }
+        }
+    }
+
+    private fun translateError(message: String?): String {
+        return when {
+            message == null -> "Error de autenticación"
+            message.contains("User already exists") -> "El email ya está registrado"
+            message.contains("Invalid credentials") || message.contains("Invalid username or password") -> "Email o contraseña incorrectos"
+            message.contains("not found") -> "Usuario no encontrado"
+            else -> message
         }
     }
 
@@ -80,8 +89,11 @@ class AuthViewModel(
             _isLoading.value = true
             try {
                 _loginSuccess.value = authRepository.register(_user.value)
+                if (_loginSuccess.value != true) {
+                    _errorMessage.value = "Error al registrarse: respuesta inesperada del servidor"
+                }
             } catch (e: Exception) {
-                _errorMessage.value = "Error al registrar: ${e.message}"
+                _errorMessage.value = translateError(e.message)
             } finally {
                 _isLoading.value = false
             }

@@ -293,6 +293,7 @@ fun Navigation(
                     val viewmodel = getAnimalViewModel()
                     viewmodel.getBarns()
                     viewmodel.getBreeds()
+                    viewmodel.getAllAnimals()
                     AddAnimalForm(
                         viewmodel,
                         goHome = { navigateTo("home") },

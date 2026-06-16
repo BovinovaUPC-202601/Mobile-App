@@ -20,6 +20,9 @@ class BarnViewModel(
     private val _saveSuccess = MutableStateFlow<Boolean?>(null)
     val saveSuccess: StateFlow<Boolean?> = _saveSuccess
 
+    private val _errorMessage = MutableStateFlow<String?>(null)
+    val errorMessage: StateFlow<String?> = _errorMessage
+
     fun addBarn(barn: Barn) {
         viewModelScope.launch {
             _isLoading.value = true
@@ -28,6 +31,7 @@ class BarnViewModel(
                 _saveSuccess.value = true
                 getBarns()
             } catch (e: Exception) {
+                _errorMessage.value = e.message ?: "Error al añadir establo"
                 _saveSuccess.value = false
             } finally {
                 _isLoading.value = false
@@ -37,10 +41,19 @@ class BarnViewModel(
 
     fun getBarns() {
         viewModelScope.launch {
-            _barns.value = barnRepository.getBarns()
+            try {
+                _barns.value = barnRepository.getBarns()
+            } catch (e: Exception) {
+                _errorMessage.value = e.message ?: "Error al obtener establos"
+            }
         }
     }
+
     fun resetSaveSuccess() {
         _saveSuccess.value = null
+    }
+
+    fun resetErrorMessage() {
+        _errorMessage.value = null
     }
 }
