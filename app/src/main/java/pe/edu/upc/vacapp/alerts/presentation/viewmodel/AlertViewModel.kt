@@ -43,7 +43,7 @@ class AlertViewModel(
     // Only bovines that actually have alerts, with friendly names, for the dropdown.
     val bovineOptions: StateFlow<List<BovineOption>> =
         combine(_alerts, _namesByBovineId) { alerts, names ->
-            alerts.map { it.bovineId }.distinct()
+            alerts.mapNotNull { it.bovineId }.distinct()
                 .map { BovineOption(it, names[it] ?: "Bovino $it") }
                 .sortedBy { it.name }
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())

@@ -73,7 +73,7 @@ fun AlertView(viewModel: AlertViewModel, userId: Int) {
             items(alerts) { alert ->
                 AlertItemCard(
                     alert = alert,
-                    bovineName = names[alert.bovineId],
+                    bovineName = alert.bovineId?.let { names[it] },
                     onMarkAsRead = { viewModel.markAsRead(alert.id) }
                 )
             }
@@ -171,7 +171,7 @@ fun AlertItemCard(alert: Alert, bovineName: String?, onMarkAsRead: () -> Unit) {
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                AssistChip(onClick = {}, label = { Text(alert.alertType, fontSize = 11.sp) })
+                AssistChip(onClick = {}, label = { Text(alert.alertTypeLabel, fontSize = 11.sp) })
                 AssistChip(onClick = {}, label = { Text(alert.urgencyLevel, fontSize = 11.sp) })
                 AssistChip(
                     onClick = {},
@@ -179,8 +179,11 @@ fun AlertItemCard(alert: Alert, bovineName: String?, onMarkAsRead: () -> Unit) {
                 )
             }
 
-            val bovineLabel = if (bovineName != null) "$bovineName (ID: ${alert.bovineId})"
-                              else "Bovino ID: ${alert.bovineId}"
+            val bovineLabel = when {
+                alert.isAccountLevel -> "Cuenta"
+                bovineName != null   -> "$bovineName (ID: ${alert.bovineId})"
+                else                 -> "Bovino ID: ${alert.bovineId}"
+            }
             Text("$bovineLabel · ${alert.createdAt.take(16).replace("T", " ")}",
                 fontSize = 11.sp, color = Color.Gray)
 
