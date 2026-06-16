@@ -42,8 +42,8 @@ fun BarnView(
         if (barns.isEmpty()) {
             EmptyState(
                 icon = Icons.Filled.Warehouse,
-                title = "No barns yet",
-                description = "You haven't registered any barns. Tap + to create your first one."
+                title = "Sin establos aún",
+                description = "No has registrado ningún establo. Toca + para crear el primero."
             )
         } else {
             LazyColumn(
@@ -73,7 +73,7 @@ fun BarnView(
         ) {
             Icon(
                 imageVector = Icons.Filled.Add,
-                contentDescription = "Add barn"
+                contentDescription = "Añadir establo"
             )
         }
     }

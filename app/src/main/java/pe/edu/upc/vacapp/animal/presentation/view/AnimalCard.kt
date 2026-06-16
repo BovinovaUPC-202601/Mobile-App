@@ -61,8 +61,8 @@ fun AnimalCardList(
         if (animals.isEmpty()) {
             EmptyState(
                 icon = Icons.Filled.Pets,
-                title = "No animals yet",
-                description = "Registered animals will appear here."
+                title = "Sin animales aún",
+                description = "Los animales registrados aparecerán aquí."
             )
         } else {
             LazyColumn(
@@ -90,7 +90,7 @@ fun AnimalCardList(
         ) {
             Icon(
                 imageVector = Icons.Filled.Add,
-                contentDescription = "Add animal"
+                contentDescription = "Añadir animal"
             )
         }
     }
@@ -160,7 +160,7 @@ fun AnimalCard(
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     Text(
-                        text = animal.name.ifBlank { "Unnamed animal" },
+                        text = animal.name.ifBlank { "Animal sin nombre" },
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurface,
                         maxLines = 1,
@@ -171,9 +171,9 @@ fun AnimalCard(
                 Text(
                     text = listOfNotNull(
                         animal.breed.takeIf { it.isNotBlank() },
-                        if (animal.age > 0) "${animal.age} mo" else null,
+                        if (animal.age > 0) "${animal.age} m" else null,
                         animal.barnName.takeIf { it.isNotBlank() }
-                    ).joinToString(" · ").ifBlank { "No details" },
+                    ).joinToString(" · ").ifBlank { "Sin detalles" },
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1

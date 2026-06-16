@@ -1,12 +1,12 @@
 package pe.edu.upc.vacapp.campaign.data.repository
 
-import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import pe.edu.upc.vacapp.barn.domain.model.Barn
 import pe.edu.upc.vacapp.campaign.data.model.CreateCampaignRequest
 import pe.edu.upc.vacapp.campaign.data.remote.CampaignService
 import pe.edu.upc.vacapp.campaign.domain.model.Campaign
+import pe.edu.upc.vacapp.shared.data.remote.errorMessage
 
 class CampaingRepository(
     private val campaignService: CampaignService
@@ -17,7 +17,9 @@ class CampaingRepository(
         val data = CreateCampaignRequest.fromCampaign(campaing)
         val response = campaignService.createCampaign(data)
         if (response.isSuccessful) {
-            Log.d("prueba", response.body().toString())
+            response.body()
+        } else {
+            throw Exception(response.errorMessage())
         }
     }
 
@@ -25,14 +27,12 @@ class CampaingRepository(
         val response = campaignService.getCampaign()
 
         if (response.isSuccessful) {
-            Log.d("prueba", response.body().toString())
-
             return@withContext response.body()?.map {
                 it.toCampaign()
             } ?: emptyList()
         }
 
-        return@withContext emptyList()
+        throw Exception(response.errorMessage())
     }
 
     suspend fun getBarns(): List<Barn> = withContext(Dispatchers.IO) {
@@ -44,6 +44,6 @@ class CampaingRepository(
             } ?: emptyList()
         }
 
-        return@withContext emptyList()
+        throw Exception(response.errorMessage())
     }
 }

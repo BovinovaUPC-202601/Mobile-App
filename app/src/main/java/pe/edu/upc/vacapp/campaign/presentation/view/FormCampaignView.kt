@@ -1,8 +1,6 @@
 package pe.edu.upc.vacapp.campaign.presentation.view
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,13 +14,21 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarData
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -47,6 +53,10 @@ import pe.edu.upc.vacapp.campaign.domain.model.Campaign
 import pe.edu.upc.vacapp.campaign.presentation.viewmodel.CampaignViewModel
 import pe.edu.upc.vacapp.iam.presentation.view.components.AuthTextField
 import pe.edu.upc.vacapp.iam.presentation.view.components.PrimaryButton
+import pe.edu.upc.vacapp.shared.util.DateUtils
+import pe.edu.upc.vacapp.ui.theme.Emerald30
+import pe.edu.upc.vacapp.ui.theme.Emerald90
+import pe.edu.upc.vacapp.ui.theme.Error40
 
 @Composable
 fun FormCampaignView(
@@ -55,10 +65,15 @@ fun FormCampaignView(
 ) {
     var name by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
-    var startDate by remember { mutableStateOf(LocalDate.now()) }
-    var endDate by remember { mutableStateOf(LocalDate.now()) }
+    var startDate by remember { mutableStateOf(DateUtils.today()) }
+    var endDate by remember { mutableStateOf(DateUtils.today()) }
+    var localError by remember { mutableStateOf("") }
     val isLoading by viewModel.isLoading.collectAsState()
     val addSuccess by viewModel.addSuccess.collectAsState()
+    val errorMessage by viewModel.errorMessage.collectAsState()
+    val barns by viewModel.barn.collectAsState()
+    var selectedBarnIds by remember { mutableStateOf(setOf<Int>()) }
+    val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(Unit) {
         viewModel.resetAddSuccess()
@@ -71,90 +86,136 @@ fun FormCampaignView(
         }
     }
 
-    val submit = {
-        if (!isLoading && name.isNotBlank()) {
-            viewModel.addCanpaing(
-                Campaign(
-                    name = name,
-                    description = description,
-                    startDate = startDate,
-                    endDate = endDate
-                )
+    LaunchedEffect(errorMessage) {
+        errorMessage?.let {
+            snackbarHostState.showSnackbar(
+                message = it,
+                duration = SnackbarDuration.Short
             )
+            viewModel.resetErrorMessage()
         }
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-    ) {
-        Column(
+    val submit = {
+        localError = ""
+        if (!isLoading && name.isNotBlank()) {
+            if (endDate <= startDate) {
+                localError = "La fecha de fin debe ser posterior a la fecha de inicio."
+            } else if (endDate.isBefore(DateUtils.today())) {
+                localError = "La fecha de fin debe ser hoy o una fecha futura."
+            } else if (selectedBarnIds.isEmpty()) {
+                localError = "Selecciona al menos un establo."
+            } else {
+                viewModel.addCanpaing(
+                    Campaign(
+                        name = name,
+                        description = description,
+                        startDate = startDate,
+                        endDate = endDate,
+                        stableIds = selectedBarnIds.toList(),
+                    )
+                )
+            }
+        }
+    }
+
+    Scaffold(
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState) { data ->
+                StyledSnackbar(data)
+            }
+        }
+    ) { _ ->
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 24.dp, vertical = 32.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+                .background(MaterialTheme.colorScheme.background)
         ) {
-            Surface(
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .widthIn(max = 480.dp)
-                    .shadow(
-                        elevation = 12.dp,
-                        shape = RoundedCornerShape(20.dp),
-                        clip = false,
-                        ambientColor = Color.Black.copy(alpha = 0.04f),
-                        spotColor = Color.Black.copy(alpha = 0.06f)
-                    ),
-                shape = RoundedCornerShape(20.dp),
-                color = MaterialTheme.colorScheme.surface,
-                tonalElevation = 0.dp
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 24.dp, vertical = 32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
-                Column(
-                    modifier = Modifier.padding(horizontal = 22.dp, vertical = 26.dp),
-                    verticalArrangement = Arrangement.spacedBy(18.dp)
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .widthIn(max = 480.dp)
+                        .shadow(
+                            elevation = 12.dp,
+                            shape = RoundedCornerShape(20.dp),
+                            clip = false,
+                            ambientColor = Color.Black.copy(alpha = 0.04f),
+                            spotColor = Color.Black.copy(alpha = 0.06f)
+                        ),
+                    shape = RoundedCornerShape(20.dp),
+                    color = MaterialTheme.colorScheme.surface,
+                    tonalElevation = 0.dp
                 ) {
-                    Text(
-                        text = "Add campaign",
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
+                    Column(
+                        modifier = Modifier.padding(horizontal = 22.dp, vertical = 26.dp),
+                        verticalArrangement = Arrangement.spacedBy(18.dp)
+                    ) {
+                        Text(
+                            text = "Añadir campaña",
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
 
-                    AuthTextField(
-                        value = name,
-                        onValueChange = { name = it },
-                        label = "Name",
-                        imeAction = ImeAction.Next
-                    )
+                        AuthTextField(
+                            value = name,
+                            onValueChange = { name = it },
+                            label = "Nombre",
+                            imeAction = ImeAction.Next
+                        )
 
-                    AuthTextField(
-                        value = description,
-                        onValueChange = { description = it },
-                        label = "Description",
-                        imeAction = ImeAction.Next,
-                        keyboardType = KeyboardType.Text
-                    )
+                        AuthTextField(
+                            value = description,
+                            onValueChange = { description = it },
+                            label = "Descripción",
+                            imeAction = ImeAction.Next,
+                            keyboardType = KeyboardType.Text
+                        )
 
-                    HorizontalDivider(
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-                    )
+                        BarnMultiSelectField(
+                            barns = barns,
+                            selectedIds = selectedBarnIds,
+                            onToggle = { id ->
+                                selectedBarnIds = if (id in selectedBarnIds)
+                                    selectedBarnIds - id
+                                else
+                                    selectedBarnIds + id
+                            }
+                        )
 
-                    CampaignDateField(
-                        label = "Start date",
-                        date = startDate,
-                        onDateChange = { startDate = it }
-                    )
+                        HorizontalDivider(
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                        )
 
-                    CampaignDateField(
-                        label = "End date",
-                        date = endDate,
-                        onDateChange = { endDate = it }
-                    )
+                        CampaignDateField(
+                            label = "Fecha de inicio",
+                            date = startDate,
+                            onDateChange = { startDate = it }
+                        )
+
+                        CampaignDateField(
+                            label = "Fecha de fin",
+                            date = endDate,
+                            onDateChange = { endDate = it }
+                        )
+
+                    if (localError.isNotEmpty()) {
+                        Text(
+                            text = localError,
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
 
                     PrimaryButton(
-                        label = "Save campaign",
+                        label = "Guardar campaña",
                         onClick = { submit() },
                         isLoading = isLoading,
                         enabled = name.isNotBlank()
@@ -162,20 +223,137 @@ fun FormCampaignView(
 
                     Spacer(modifier = Modifier.height(2.dp))
 
-                    TextButton(
-                        onClick = goHome,
-                        modifier = Modifier.align(Alignment.CenterHorizontally),
-                        enabled = !isLoading
-                    ) {
-                        Text(
-                            text = "Cancel",
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        TextButton(
+                            onClick = goHome,
+                            modifier = Modifier.align(Alignment.CenterHorizontally),
+                            enabled = !isLoading
+                        ) {
+                            Text(
+                                text = "Cancelar",
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun BarnMultiSelectField(
+    barns: List<pe.edu.upc.vacapp.barn.domain.model.Barn>,
+    selectedIds: Set<Int>,
+    onToggle: (Int) -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val label = if (selectedIds.isEmpty()) "Seleccionar establos"
+        else "${selectedIds.size} establo${if (selectedIds.size != 1) "s" else ""} seleccionado${if (selectedIds.size != 1) "s" else ""}"
+
+    Surface(
+        onClick = { expanded = true },
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(56.dp),
+        shape = RoundedCornerShape(12.dp),
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        border = androidx.compose.foundation.BorderStroke(
+            1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+        )
+    ) {
+        Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column {
+                    Text(
+                        text = "Establos",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = label,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = if (selectedIds.isNotEmpty()) MaterialTheme.colorScheme.onSurface
+                        else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                    )
+                }
+                Icon(
+                    imageVector = Icons.Filled.ArrowDropDown,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                if (barns.isEmpty()) {
+                    DropdownMenuItem(
+                        onClick = { expanded = false },
+                        text = {
+                            Text(
+                                text = "No hay establos disponibles",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    )
+                } else {
+                    barns.forEach { barn ->
+                        val checked = barn.id in selectedIds
+                        DropdownMenuItem(
+                            onClick = {
+                                onToggle(barn.id)
+                            },
+                            text = {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    androidx.compose.material3.Checkbox(
+                                        checked = checked,
+                                        onCheckedChange = { onToggle(barn.id) }
+                                    )
+                                    Text(
+                                        text = barn.name,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
+                            }
                         )
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun StyledSnackbar(data: SnackbarData) {
+    Surface(
+        modifier = Modifier
+            .padding(12.dp)
+            .shadow(
+                elevation = 8.dp,
+                shape = RoundedCornerShape(12.dp),
+                clip = false
+            ),
+        shape = RoundedCornerShape(12.dp),
+        color = Color.Transparent
+    ) {
+        Snackbar(
+            snackbarData = data,
+            containerColor = Emerald90,
+            contentColor = Emerald30,
+            actionColor = Error40,
+            shape = RoundedCornerShape(12.dp)
+        )
     }
 }
 

@@ -25,7 +25,7 @@ import pe.edu.upc.vacapp.ui.theme.OnSurfaceVariantLight
 fun BrandHeader(
     modifier: Modifier = Modifier,
     brandName: String = "VacApp",
-    tagline: String = "Livestock management, modernized.",
+    tagline: String = "Gestión de ganado, modernizada.",
     contentPadding: PaddingValues = PaddingValues(horizontal = 24.dp, vertical = 16.dp)
 ) {
     Column(

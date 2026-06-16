@@ -59,7 +59,7 @@ fun BarnDetailsView(
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
-                        text = barn.name.ifBlank { "Unnamed barn" },
+                        text = barn.name.ifBlank { "Establo sin nombre" },
                         style = MaterialTheme.typography.headlineSmall,
                         color = MaterialTheme.colorScheme.onSurface
                     )
@@ -74,8 +74,8 @@ fun BarnDetailsView(
                 item {
                     EmptyState(
                         icon = Icons.Filled.Pets,
-                        title = "No animals in this barn",
-                        description = "Animals assigned to this barn will appear here."
+                        title = "Sin animales en este establo",
+                        description = "Los animales asignados a este establo aparecerán aquí."
                     )
                 }
             } else {
@@ -133,7 +133,7 @@ private fun AnimalRowCard(
                 verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 Text(
-                    text = animal.name.ifBlank { "Unnamed animal" },
+                    text = animal.name.ifBlank { "Animal sin nombre" },
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1
@@ -141,8 +141,8 @@ private fun AnimalRowCard(
                 Text(
                     text = listOfNotNull(
                         animal.breed.takeIf { it.isNotBlank() },
-                        if (animal.age > 0) "${animal.age} mo" else null
-                    ).joinToString(" · ").ifBlank { "No details" },
+                        if (animal.age > 0) "${animal.age} m" else null
+                    ).joinToString(" · ").ifBlank { "Sin detalles" },
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -171,7 +171,7 @@ private fun CapacityBar(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Capacity",
+                text = "Capacidad",
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

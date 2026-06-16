@@ -10,6 +10,7 @@ data class CreateCampaignRequest(
     val description: String,
     val startDate: LocalDate,
     val endDate: LocalDate,
+    val stableIds: List<Int>,
 ) {
     companion object {
         fun fromCampaign(c: Campaign): CreateCampaignRequest {
@@ -17,9 +18,9 @@ data class CreateCampaignRequest(
                 name = c.name,
                 description = c.description,
                 startDate = c.startDate,
-                endDate = c.endDate
+                endDate = c.endDate,
+                stableIds = c.stableIds,
             )
-
         }
     }
 }

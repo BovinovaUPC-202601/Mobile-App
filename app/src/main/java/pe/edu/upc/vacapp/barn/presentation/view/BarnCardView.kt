@@ -83,7 +83,7 @@ fun BarnCardView(
                     verticalArrangement = Arrangement.spacedBy(2.dp)
                 ) {
                     Text(
-                        text = barn.name.ifBlank { "Unnamed barn" },
+                        text = barn.name.ifBlank { "Establo sin nombre" },
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurface,
                         maxLines = 1
@@ -91,7 +91,7 @@ fun BarnCardView(
                     val total = barn.limit.toIntOrNull() ?: 0
 
                     Text(
-                        text = "$barnAnimals/$total capacity",
+                        text = "$barnAnimals/$total capacidad",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -121,5 +121,5 @@ fun BarnCardView(
 @Preview
 @Composable
 private fun BarnCardViewPreview() {
-    BarnCardView(barn = Barn(limit = "65", name = "North pasture"), barnAnimals = 12)
+    BarnCardView(barn = Barn(limit = "65", name = "Pasto norte"), barnAnimals = 12)
 }

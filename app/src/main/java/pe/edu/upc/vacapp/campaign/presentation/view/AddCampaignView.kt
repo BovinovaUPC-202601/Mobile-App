@@ -99,7 +99,7 @@ fun AddCampaignView(
 
                 label = {
                     Text(
-                        "Name",
+                        "Nombre",
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 30.sp,
                         color = Color.Black
@@ -117,7 +117,7 @@ fun AddCampaignView(
 
                 label = {
                     Text(
-                        "Description",
+                        "Descripción",
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 30.sp,
                         color = Color.Black
@@ -128,7 +128,7 @@ fun AddCampaignView(
             )
 
             DatePickerTextField(
-                label = "Start date",
+                label = "Fecha de inicio",
                 date = campaign.value.startDate,
                 onDateChange = {
                     campaign.value = campaign.value.copy(startDate = it)
@@ -136,7 +136,7 @@ fun AddCampaignView(
             )
 
             DatePickerTextField(
-                label = "End date",
+                label = "Fecha de fin",
                 date = campaign.value.endDate,
                 onDateChange = {
                     campaign.value = campaign.value.copy(endDate = it)
@@ -238,7 +238,7 @@ fun DatePickerTextField(
             IconButton(onClick = { datePickerDialog.show() }) {
                 Icon(
                     imageVector = Icons.Default.CalendarToday,
-                    contentDescription = "Pick Date",
+                    contentDescription = "Seleccionar fecha",
                     tint = Color.Black
                 )
             }
@@ -275,7 +275,7 @@ fun DropdownSelector(
             trailingIcon = {
                 Icon(
                     imageVector = Icons.Default.ArrowDropDown,
-                    contentDescription = "Dropdown",
+                    contentDescription = "Desplegable",
                     modifier = Modifier.clickable { expanded.value = true },
                     tint = Color.Black
                 )

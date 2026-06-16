@@ -52,7 +52,7 @@ fun AppTopBar(
             IconButton(onClick = onMenuClick) {
                 Icon(
                     imageVector = Icons.Default.Menu,
-                    contentDescription = "Open menu",
+                    contentDescription = "Abrir menú",
                     tint = MaterialTheme.colorScheme.onSurface
                 )
             }
@@ -82,7 +82,7 @@ fun AppTopBar(
             IconButton(onClick = onBellClick) {
                 Icon(
                     imageVector = Icons.Default.Notifications,
-                    contentDescription = "Notifications",
+                    contentDescription = "Notificaciones",
                     tint = MaterialTheme.colorScheme.onSurface
                 )
             }

@@ -6,6 +6,7 @@ import org.threeten.bp.LocalDateTime
 import org.threeten.bp.format.DateTimeFormatter
 import pe.edu.upc.vacapp.animal.domain.model.Animal
 import pe.edu.upc.vacapp.animal.domain.model.AnimalImage
+import pe.edu.upc.vacapp.shared.util.DateUtils
 
 data class AnimalResponse(
     val id: Int,
@@ -39,7 +40,7 @@ data class AnimalResponse(
         }
 
         val formattedDate = birthDateOnly.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
-        val today = LocalDate.now()
+        val today = DateUtils.today()
 
         val age = if ((today.monthValue > birthDateOnly.monthValue) ||
             (today.monthValue == birthDateOnly.monthValue && today.dayOfMonth >= birthDateOnly.dayOfMonth)

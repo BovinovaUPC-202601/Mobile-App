@@ -40,8 +40,8 @@ fun CampaignView(
         if (campaigns.isEmpty()) {
             EmptyState(
                 icon = Icons.Filled.MedicalServices,
-                title = "No campaigns yet",
-                description = "Registered campaigns will appear here."
+                title = "Sin campañas aún",
+                description = "Las campañas registradas aparecerán aquí."
             )
         } else {
             LazyColumn(
@@ -66,7 +66,7 @@ fun CampaignView(
         ) {
             Icon(
                 imageVector = Icons.Filled.Add,
-                contentDescription = "Add campaign"
+                contentDescription = "Añadir campaña"
             )
         }
     }
