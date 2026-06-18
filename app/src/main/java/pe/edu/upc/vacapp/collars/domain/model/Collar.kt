@@ -19,10 +19,11 @@ data class CollarCapacity(
 )
 
 /**
- * The physical device id (ESP32) is never shown. A positional collar number N
- * is encoded inside a globally-unique deviceId — `collar-{N}-{random}` — so the
- * UI renders a friendly "Collar N" label without exposing the raw id. Mirrors
- * the web client's collar-id lib; the backend enforces UNIQUE device ids.
+ * A positional collar number N is encoded inside a globally-unique deviceId —
+ * `collar-{N}-{random}` — so the UI can render a friendly "Collar N" label. The
+ * raw deviceId is also shown (with a copy button) once a collar is assigned, so
+ * the rancher can flash that exact value into the ESP32. Mirrors the web client's
+ * collar-id lib; the backend enforces UNIQUE device ids.
  */
 object CollarId {
     private val DEVICE_ID_RE = Regex("""^collar-(\d+)-""")

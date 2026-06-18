@@ -14,6 +14,7 @@ import pe.edu.upc.vacapp.ai.data.model.BovineAnalysisResponse
 import pe.edu.upc.vacapp.ai.data.model.ChatMessageResponse
 import pe.edu.upc.vacapp.ai.data.repository.AiAccessDeniedException
 import pe.edu.upc.vacapp.ai.data.repository.AiAssistantRepository
+import pe.edu.upc.vacapp.ai.data.repository.AiRateLimitedException
 import pe.edu.upc.vacapp.ai.data.repository.AiSessionExpiredException
 import pe.edu.upc.vacapp.animal.data.repository.AnimalRepository
 import pe.edu.upc.vacapp.animal.domain.model.Animal
@@ -256,6 +257,7 @@ class AiAssistantViewModel(
             }
 
             is AiSessionExpiredException -> _errorMessage.value = e.message
+            is AiRateLimitedException -> _errorMessage.value = e.message
             else -> _errorMessage.value = e.message ?: fallback
         }
     }

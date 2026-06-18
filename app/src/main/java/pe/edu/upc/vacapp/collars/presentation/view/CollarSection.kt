@@ -24,6 +24,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import pe.edu.upc.vacapp.collars.domain.model.CollarId
@@ -48,6 +50,7 @@ fun CollarSection(
 
     val collar = collars.firstOrNull { it.bovineId == bovineId }
     val available = remember(collars, capacity) { viewModel.availableNumbers() }
+    val clipboard = LocalClipboardManager.current
 
     var changing by remember { mutableStateOf(false) }
     var selected by remember { mutableStateOf<Int?>(null) }
@@ -86,26 +89,58 @@ fun CollarSection(
                     color = OnSurfaceVariantLight
                 )
 
-                collar != null && !changing -> Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column {
-                        Text(
-                            text = CollarId.label(collar.deviceId),
-                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium)
-                        )
-                        collar.operationalStatus?.let {
-                            Text(it, style = MaterialTheme.typography.bodySmall, color = OnSurfaceVariantLight)
+                collar != null && !changing -> Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text(
+                                text = CollarId.label(collar.deviceId),
+                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium)
+                            )
+                            collar.operationalStatus?.let {
+                                Text(it, style = MaterialTheme.typography.bodySmall, color = OnSurfaceVariantLight)
+                            }
+                        }
+                        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            TextButton(onClick = { changing = true; selected = null }, enabled = !loading) {
+                                Text("Cambiar")
+                            }
+                            TextButton(onClick = { viewModel.remove(collar.id) }, enabled = !loading) {
+                                Text("Quitar", color = MaterialTheme.colorScheme.error)
+                            }
                         }
                     }
-                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                        TextButton(onClick = { changing = true; selected = null }, enabled = !loading) {
-                            Text("Cambiar")
-                        }
-                        TextButton(onClick = { viewModel.remove(collar.id) }, enabled = !loading) {
-                            Text("Quitar", color = MaterialTheme.colorScheme.error)
+                    // Device id to flash into the ESP32 — stays visible while a collar is
+                    // assigned, so the rancher can copy it any time, not only right after registering.
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(8.dp),
+                        color = MaterialTheme.colorScheme.surface
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(8.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "Copiá este ID a tu ESP32 (DEVICE_ID):",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = OnSurfaceVariantLight
+                                )
+                                Text(
+                                    text = collar.deviceId,
+                                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium)
+                                )
+                            }
+                            TextButton(onClick = { clipboard.setText(AnnotatedString(collar.deviceId)) }) {
+                                Text("Copiar")
+                            }
                         }
                     }
                 }

@@ -22,6 +22,11 @@ class AiSessionExpiredException(
     message: String = "Your session expired. Please sign in again."
 ) : Exception(message)
 
+/** The model provider throttled us (token/minute rate limit); the backend answers with 429. */
+class AiRateLimitedException(
+    message: String = "The assistant is receiving too many requests right now (usage limit). Wait a few seconds and try again."
+) : Exception(message)
+
 /**
  * Talks to the AI Assistant backend (the ai endpoints).
  *
@@ -86,6 +91,7 @@ open class AiAssistantRepository(
         when (response.code()) {
             401 -> throw AiSessionExpiredException()
             403 -> throw AiAccessDeniedException()
+            429 -> throw AiRateLimitedException()
         }
 
         val error = response.errorBody()?.string().orEmpty()
