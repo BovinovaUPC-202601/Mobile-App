@@ -62,7 +62,7 @@ import pe.edu.upc.vacapp.monitoring.presentation.view.MonitoringView
 import pe.edu.upc.vacapp.collars.presentation.di.PresentationModule.getCollarViewModel
 import pe.edu.upc.vacapp.subscription.presentation.di.PresentationModule.getSubscriptionViewModel
 import pe.edu.upc.vacapp.subscription.presentation.view.SubscriptionView
-import pe.edu.upc.vacapp.shared.data.local.JwtStorage
+import pe.edu.upc.vacapp.shared.session.SessionManager
 
 private val drawerItems: List<DrawerItem> = listOf(
     DrawerItem("home", "Home", Icons.Default.Home),
@@ -134,7 +134,9 @@ fun Navigation(
                 activeRoute = currentRoute,
                 onItemClick = { item -> scope.launch { drawerState.close() }; navigateTo(item.route) },
                 onSignOut = {
-                    JwtStorage.clearToken()
+                    // Clears token + alert bookkeeping + every cached ViewModel so the
+                    // next user never inherits this session's state.
+                    SessionManager.logout()
                     goToLogin()
                 }
             )
@@ -263,11 +265,22 @@ fun Navigation(
                 }
 
                 composable("animal-details") {
-                    AnimalDetails(selectedAnimal.value!!, getCollarViewModel(), getAnimalViewModel())
+                    // Guard against a missing selection (e.g. after process death) instead of !!.
+                    val animal = selectedAnimal.value
+                    if (animal == null) {
+                        navigateTo("animals")
+                    } else {
+                        AnimalDetails(animal, getCollarViewModel(), getAnimalViewModel())
+                    }
                 }
 
                 composable("inventory-details") {
-                    InventoryDetails(selectedInventory.value!!)
+                    val inventory = selectedInventory.value
+                    if (inventory == null) {
+                        navigateTo("inventory")
+                    } else {
+                        InventoryDetails(inventory)
+                    }
                 }
 
                 composable("add-animal") {
