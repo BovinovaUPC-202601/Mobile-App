@@ -5,7 +5,7 @@ import pe.edu.upc.vacapp.alerts.domain.model.Alert
 
 data class AlertResponse(
     @SerializedName("id")           val id: Int,
-    @SerializedName("bovineId")     val bovineId: Int,
+    @SerializedName("bovineId")     val bovineId: Int?, // null for account-level alerts (e.g. CollarReturn)
     @SerializedName("userId")       val userId: Int,
     @SerializedName("alertType")    val alertType: String,
     @SerializedName("urgencyLevel") val urgencyLevel: String,

@@ -37,7 +37,7 @@ open class AnimalRepository(
             //val imgInternalPath = copyFileToInternalStorage(req.image)?.absolutePath ?: ""
             res.body()
         } else {
-            throw Exception("Error adding animal: ${res.errorBody()?.string()}")
+            throw Exception("Error al añadir animal: ${res.errorBody()?.string()}")
         }
     }
 
@@ -47,7 +47,7 @@ open class AnimalRepository(
         if (res.isSuccessful) {
             res.body()?.toAnimal() ?: animal
         } else {
-            throw Exception("Error updating animal: ${res.errorBody()?.string()}")
+            throw Exception("Error al actualizar animal: ${res.errorBody()?.string()}")
         }
     }
 
@@ -67,7 +67,7 @@ open class AnimalRepository(
                 animal.copy(barnName = matchingBarnName)
             }
         } else {
-            throw Exception("Error fetching animals: ${res.errorBody()?.string()}")
+            throw Exception("Error al obtener animales: ${res.errorBody()?.string()}")
         }
     }
 

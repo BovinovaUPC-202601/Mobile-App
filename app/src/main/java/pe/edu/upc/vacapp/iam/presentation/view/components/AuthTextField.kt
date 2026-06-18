@@ -135,7 +135,7 @@ fun AuthTextField(
                         Icon(
                             painter = visibilityIcon,
                             contentDescription =
-                                if (passwordVisible) "Hide password" else "Show password",
+                                if (passwordVisible) "Ocultar contraseña" else "Mostrar contraseña",
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }

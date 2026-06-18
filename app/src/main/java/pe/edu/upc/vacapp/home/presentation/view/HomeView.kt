@@ -86,21 +86,21 @@ fun HomeView(
             ) {
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(
-                        text = "Hello, ${userInfo.name.ifBlank { "there" }}",
+                        text = "Hola, ${userInfo.name.ifBlank { "ahí" }}",
                         style = MaterialTheme.typography.headlineSmall.copy(
                             fontWeight = FontWeight.SemiBold
                         ),
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        text = "Here's how your ranch is doing today.",
+                        text = "Así está tu rancho hoy.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
 
                 StatCard(
-                    label = "Registered animals",
+                    label = "Animales registrados",
                     value = userInfo.totalAnimals.toString(),
                     icon = Icons.Filled.Pets,
                     accent = StatCardAccent.Emerald,
@@ -110,7 +110,7 @@ fun HomeView(
                 Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                     Box(modifier = Modifier.weight(1f)) {
                         StatCard(
-                            label = "Campaigns",
+                            label = "Campañas",
                             value = userInfo.totalCampaigns.toString(),
                             icon = Icons.Filled.MedicalServices,
                             accent = StatCardAccent.Sand,
@@ -119,7 +119,7 @@ fun HomeView(
                     }
                     Box(modifier = Modifier.weight(1f)) {
                         StatCard(
-                            label = "Stables",
+                            label = "Establos",
                             value = userInfo.totalBarns.toString(),
                             icon = Icons.Filled.Warehouse,
                             accent = StatCardAccent.Sky,
@@ -132,15 +132,15 @@ fun HomeView(
 
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(
-                        text = "Upcoming campaigns",
+                        text = "Próximas campañas",
                         style = MaterialTheme.typography.titleLarge,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     if (userInfo.nextCampaigns.isEmpty()) {
                         EmptyState(
                             icon = Icons.Filled.CalendarMonth,
-                            title = "Nothing scheduled",
-                            description = "You don't have any campaigns coming up. Tap + to create one."
+                            title = "Nada programado",
+                            description = "No tienes campañas próximas. Toca + para crear una."
                         )
                     } else {
                         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -173,7 +173,7 @@ fun HomeView(
             ) {
                 Icon(
                     imageVector = if (fabExpanded) Icons.Filled.Close else Icons.Filled.Add,
-                    contentDescription = if (fabExpanded) "Close menu" else "Add"
+                    contentDescription = if (fabExpanded) "Cerrar menú" else "Añadir"
                 )
             }
             DropdownMenu(
@@ -191,7 +191,7 @@ fun HomeView(
                     }
                 )
                 DropdownMenuItem(
-                    text = { Text("Campaign") },
+                    text = { Text("Campaña") },
                     leadingIcon = {
                         Icon(Icons.Filled.MedicalServices, contentDescription = null)
                     },
@@ -201,7 +201,7 @@ fun HomeView(
                     }
                 )
                 DropdownMenuItem(
-                    text = { Text("Barn") },
+                    text = { Text("Establo") },
                     leadingIcon = {
                         Icon(Icons.Filled.Warehouse, contentDescription = null)
                     },

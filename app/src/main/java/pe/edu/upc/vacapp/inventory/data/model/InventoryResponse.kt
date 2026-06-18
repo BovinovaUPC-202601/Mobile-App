@@ -6,6 +6,7 @@ import org.threeten.bp.LocalDateTime
 import org.threeten.bp.format.DateTimeFormatter
 import pe.edu.upc.vacapp.inventory.domain.model.Inventory
 import pe.edu.upc.vacapp.inventory.domain.model.InventoryImage
+import pe.edu.upc.vacapp.shared.util.DateUtils
 
 
 data class InventoryResponse(
@@ -23,7 +24,7 @@ data class InventoryResponse(
 
         val vaccineDateOnly = localDateTime.toLocalDate()
         val formattedDate = vaccineDateOnly.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
-        val today = LocalDate.now()
+        val today = DateUtils.today()
 
         val age = if ((today.monthValue > vaccineDateOnly.monthValue) ||
             (today.monthValue == vaccineDateOnly.monthValue && today.dayOfMonth >= vaccineDateOnly.dayOfMonth)

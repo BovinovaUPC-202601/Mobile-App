@@ -43,7 +43,9 @@ import pe.edu.upc.vacapp.ui.theme.PrimaryButtonGradientStart
 data class DrawerItem(
     val route: String,
     val label: String,
-    val icon: ImageVector
+    val icon: ImageVector,
+    // Plus-only features (IA, IoT monitoring) — hidden from the drawer when the user is Free.
+    val plusOnly: Boolean = false
 )
 
 /**
@@ -67,14 +69,15 @@ fun AppDrawer(
     activeRoute: String?,
     onItemClick: (DrawerItem) -> Unit,
     onSignOut: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    plan: String = "Free"
 ) {
     Column(
         modifier = modifier
             .fillMaxHeight()
             .background(MaterialTheme.colorScheme.surface)
     ) {
-        DrawerHeader(userName = userName)
+        DrawerHeader(userName = userName, plan = plan)
 
         Column(
             modifier = Modifier
@@ -102,7 +105,7 @@ fun AppDrawer(
 }
 
 @Composable
-private fun DrawerHeader(userName: String) {
+private fun DrawerHeader(userName: String, plan: String) {
     val initials = remember(userName) { computeInitials(userName) }
     Box(
         modifier = Modifier
@@ -135,14 +138,35 @@ private fun DrawerHeader(userName: String) {
                 )
             }
             Text(
-                text = userName.ifBlank { "User" },
+                text = userName.ifBlank { "Usuario" },
                 style = MaterialTheme.typography.titleMedium,
                 color = Cream95,
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
+            PlanBadge(plan = plan)
         }
+    }
+}
+
+@Composable
+private fun PlanBadge(plan: String) {
+    val isPlus = plan.equals("Plus", ignoreCase = true)
+    val bg = if (isPlus) Color(0xFFFCD34D) else Cream95.copy(alpha = 0.20f)
+    val fg = if (isPlus) Color(0xFF78350F) else Cream95
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(percent = 50))
+            .background(bg)
+            .padding(horizontal = 8.dp, vertical = 2.dp)
+    ) {
+        Text(
+            text = if (isPlus) "Plus" else "Gratis",
+            style = MaterialTheme.typography.labelSmall,
+            color = fg,
+            fontWeight = FontWeight.Bold
+        )
     }
 }
 
@@ -209,7 +233,7 @@ private fun DrawerFooter(onSignOut: () -> Unit) {
             modifier = Modifier.size(20.dp)
         )
         Text(
-            text = "Log out",
+            text = "Cerrar sesión",
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )

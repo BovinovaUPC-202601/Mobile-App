@@ -50,6 +50,9 @@ fun SubscriptionView(
     val loading by viewModel.loading.collectAsState()
     val actionInProgress by viewModel.actionInProgress.collectAsState()
     val error by viewModel.error.collectAsState()
+    val checkout by viewModel.checkout.collectAsState()
+    val checkoutPhase by viewModel.checkoutPhase.collectAsState()
+    val checkoutError by viewModel.checkoutError.collectAsState()
 
     // Effective current plan: a cancelled/suspended Plus counts as Free.
     val currentPlanName = current?.let { if (it.isPlusActive) "Plus" else "Free" } ?: "Free"
@@ -70,6 +73,19 @@ fun SubscriptionView(
             style = MaterialTheme.typography.bodyMedium,
             color = OnSurfaceVariantLight
         )
+
+        val activeCheckout = checkout
+        if (activeCheckout != null) {
+            // A checkout is in flight → show the native card form instead of the plans.
+            CheckoutView(
+                session = activeCheckout,
+                phase = checkoutPhase,
+                formError = checkoutError,
+                onPay = { viewModel.confirmCheckout() },
+                onCancel = { viewModel.cancelCheckout() }
+            )
+            return@Column
+        }
 
         if (current?.isPlusActive == true) {
             CurrentPlusSummary(
@@ -97,8 +113,18 @@ fun SubscriptionView(
                 plan = plan,
                 isCurrent = plan.name.equals(currentPlanName, ignoreCase = true),
                 actionInProgress = actionInProgress,
-                onActivate = { viewModel.activatePlus() },
+                // Plus now goes through the checkout (fake card), not a direct activation.
+                onActivate = { viewModel.startPlusCheckout() },
                 onDowngrade = { viewModel.cancel() }
+            )
+        }
+
+        // Additional collars — Plus only (mirrors the web).
+        if (current?.isPlusActive == true) {
+            AdditionalCollarsCard(
+                additionalCollars = current!!.additionalCollars,
+                actionInProgress = actionInProgress,
+                onBuy = { viewModel.startCollarCheckout() }
             )
         }
     }
@@ -129,6 +155,42 @@ private fun CurrentPlusSummary(monthlyCost: Double, nextRenewal: String?) {
                     color = Emerald30
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun AdditionalCollarsCard(
+    additionalCollars: Int,
+    actionInProgress: Boolean,
+    onBuy: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text(
+                text = "Collares adicionales",
+                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
+            )
+            Text(
+                text = "Tu plan incluye 3 collares. Sumá más por S/25 / mes cada uno.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = OnSurfaceVariantLight
+            )
+            Text(
+                text = "Collares adicionales comprados: $additionalCollars",
+                style = MaterialTheme.typography.bodyMedium
+            )
+            PrimaryButton(
+                label = "Comprar collar — S/25",
+                onClick = onBuy,
+                isLoading = actionInProgress,
+                showTrailingIcon = false
+            )
         }
     }
 }

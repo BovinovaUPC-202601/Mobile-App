@@ -7,7 +7,8 @@ import pe.edu.upc.vacapp.iam.data.model.RegisterRequest
 import pe.edu.upc.vacapp.iam.data.remote.AuthService
 import pe.edu.upc.vacapp.iam.domain.model.User
 import pe.edu.upc.vacapp.shared.data.local.JwtStorage
-import pe.edu.upc.vacapp.shared.session.SessionManager
+import pe.edu.upc.vacapp.shared.data.local.UserStorage
+import pe.edu.upc.vacapp.shared.data.remote.errorMessage
 
 class AuthRepository(
     private val authService: AuthService
@@ -15,7 +16,9 @@ class AuthRepository(
     suspend fun login(user: User): Boolean = withContext(Dispatchers.IO) {
         val res = authService.login(LoginRequest.fromUser(user))
 
-        if (!res.isSuccessful) return@withContext false
+        if (!res.isSuccessful) {
+            throw Exception(res.errorMessage())
+        }
 
         val token = res.body()?.token
 
@@ -30,7 +33,9 @@ class AuthRepository(
     suspend fun register(user: User): Boolean = withContext(Dispatchers.IO) {
         val res = authService.register(RegisterRequest.fromUser(user))
 
-        if (!res.isSuccessful) return@withContext false
+        if (!res.isSuccessful) {
+            throw Exception(res.errorMessage())
+        }
 
         val token = res.body()?.token
 
@@ -43,8 +48,9 @@ class AuthRepository(
     }
 
     suspend fun logout(): Boolean = withContext(Dispatchers.IO) {
-        // Token + alert bookkeeping + every cached ViewModel, so the next user starts clean.
-        SessionManager.logout()
+        JwtStorage.clearToken()
+        // Reset notification bookkeeping so the next user re-primes from scratch.
+        UserStorage.clear()
 
         return@withContext true
     }

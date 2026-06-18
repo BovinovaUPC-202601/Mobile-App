@@ -9,14 +9,17 @@ data class CampaignResponse(
     val description: String,
     val startDate: LocalDate,
     val endDate: LocalDate,
-    ) {
+    val stableIds: List<Int> = emptyList(),
+    val stableNames: List<String> = emptyList(),
+) {
     fun toCampaign(): Campaign {
-
         return Campaign(
-            name,
-            description,
-            startDate,
-            endDate,
+            name = name,
+            description = description,
+            startDate = startDate,
+            endDate = endDate,
+            stableIds = stableIds,
+            stableNames = stableNames,
         )
     }
 }

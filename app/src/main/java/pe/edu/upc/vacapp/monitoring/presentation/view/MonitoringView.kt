@@ -83,6 +83,11 @@ fun MonitoringView(
             }
         }
 
+        // Live telemetry chart on top, then the latest reading — matching the web order.
+        if (history.isNotEmpty()) {
+            LiveTelemetryChart(records = history)
+        }
+
         // Latest record
         latest?.let { record ->
             HealthRecordCard(record = record, isLatest = true)

@@ -64,10 +64,12 @@ import pe.edu.upc.vacapp.animal.presentation.viewmodel.AnimalViewModel
 import pe.edu.upc.vacapp.barn.domain.model.Barn
 import pe.edu.upc.vacapp.iam.presentation.view.components.AuthTextField
 import pe.edu.upc.vacapp.iam.presentation.view.components.PrimaryButton
+import pe.edu.upc.vacapp.shared.util.DateUtils
 import pe.edu.upc.vacapp.ui.theme.Emerald40
 import pe.edu.upc.vacapp.ui.theme.Emerald90
 import java.io.File
 import java.util.Calendar
+import java.util.TimeZone
 
 @Composable
 fun AddAnimalForm(
@@ -114,6 +116,7 @@ private fun FormAnimalView(
     val errorMessage by viewmodel.errorMessage.collectAsState()
     val barns by viewmodel.barn.collectAsState()
     val breeds by viewmodel.breeds.collectAsState()
+    val animals by viewmodel.animals.collectAsState()
 
     var animal by remember { mutableStateOf(Animal()) }
     var imageUri by remember { mutableStateOf<Uri?>(null) }
@@ -188,7 +191,7 @@ private fun FormAnimalView(
             verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
             Text(
-                text = "Add animal",
+                text = "Añadir animal",
                 style = MaterialTheme.typography.headlineSmall,
                 color = MaterialTheme.colorScheme.onSurface
             )
@@ -222,7 +225,7 @@ private fun FormAnimalView(
                             modifier = Modifier.size(40.dp)
                         )
                         Text(
-                            text = "Tap to add photo",
+                            text = "Toca para añadir foto",
                             style = MaterialTheme.typography.bodyMedium,
                             color = Emerald40
                         )
@@ -237,13 +240,13 @@ private fun FormAnimalView(
             ) {
                 ImageActionButton(
                     icon = Icons.Filled.CameraAlt,
-                    label = "Camera",
+                    label = "Cámara",
                     onClick = { launchCamera() },
                     modifier = Modifier.weight(1f)
                 )
                 ImageActionButton(
                     icon = Icons.Filled.PhotoLibrary,
-                    label = "Gallery",
+                    label = "Galería",
                     onClick = { galleryLauncher.launch("image/*") },
                     modifier = Modifier.weight(1f)
                 )
@@ -253,7 +256,7 @@ private fun FormAnimalView(
             AuthTextField(
                 value = animal.name,
                 onValueChange = { animal = animal.copy(name = it) },
-                label = "Name",
+                label = "Nombre",
                 imeAction = ImeAction.Next
             )
 
@@ -292,13 +295,14 @@ private fun FormAnimalView(
             // Barn dropdown
             BarnDropdown(
                 barns = barns,
+                animals = animals,
                 selectedBarnId = animal.barnId,
                 onBarnSelected = { animal = animal.copy(barnId = it) }
             )
 
             // Thresholds
             Text(
-                text = "Thresholds",
+                text = "Umbrales",
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -310,14 +314,14 @@ private fun FormAnimalView(
                 AuthTextField(
                     value = formatDouble(animal.minTemperature),
                     onValueChange = { animal = animal.copy(minTemperature = it.toDoubleOrNull() ?: 0.0) },
-                    label = "Temp. Min (°C)",
+                    label = "Temp. mín (°C)",
                     keyboardType = KeyboardType.Decimal,
                     modifier = Modifier.weight(1f)
                 )
                 AuthTextField(
                     value = formatDouble(animal.maxTemperature),
                     onValueChange = { animal = animal.copy(maxTemperature = it.toDoubleOrNull() ?: 0.0) },
-                    label = "Temp. Max (°C)",
+                    label = "Temp. máx (°C)",
                     keyboardType = KeyboardType.Decimal,
                     modifier = Modifier.weight(1f)
                 )
@@ -330,14 +334,14 @@ private fun FormAnimalView(
                 AuthTextField(
                     value = formatInt(animal.minHeartRate),
                     onValueChange = { animal = animal.copy(minHeartRate = it.toIntOrNull() ?: 0) },
-                    label = "HR Min (BPM)",
+                    label = "Pulso mín (BPM)",
                     keyboardType = KeyboardType.Number,
                     modifier = Modifier.weight(1f)
                 )
                 AuthTextField(
                     value = formatInt(animal.maxHeartRate),
                     onValueChange = { animal = animal.copy(maxHeartRate = it.toIntOrNull() ?: 0) },
-                    label = "HR Max (BPM)",
+                    label = "Pulso máx (BPM)",
                     keyboardType = KeyboardType.Number,
                     modifier = Modifier.weight(1f)
                 )
@@ -363,24 +367,36 @@ private fun FormAnimalView(
 
             // Save
             PrimaryButton(
-                label = "Save animal",
+                label = "Guardar animal",
                 onClick = {
                     localError = ""
                     val a = animal
                     when {
-                        a.minTemperature > a.maxTemperature -> {
-                            localError = "Min temp cannot exceed max temp."
+                        a.barnId == 0 -> localError = "Debes seleccionar un establo."
+                        a.breed.isBlank() -> localError = "Debes seleccionar una raza."
+                        a.birthDate.isBlank() -> localError = "Debes seleccionar una fecha de nacimiento."
+                        else -> {
+                            val birthLocalDate = try {
+                                LocalDate.parse(a.birthDate, DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                            } catch (_: Exception) { null }
+                            if (birthLocalDate == null || !birthLocalDate.isBefore(DateUtils.today())) {
+                                localError = "La fecha de nacimiento debe ser anterior a hoy."
+                            } else when {
+                                a.minTemperature > a.maxTemperature -> {
+                                    localError = "La temp. mín no puede superar la temp. máx."
+                                }
+                                a.minHeartRate > a.maxHeartRate -> {
+                                    localError = "El pulso mín no puede superar el pulso máx."
+                                }
+                                a.minTemperature < MIN_TEMP_LIMIT || a.maxTemperature > MAX_TEMP_LIMIT -> {
+                                    localError = "La temperatura debe estar entre $MIN_TEMP_LIMIT y $MAX_TEMP_LIMIT °C."
+                                }
+                                a.minHeartRate < MIN_HR_LIMIT || a.maxHeartRate > MAX_HR_LIMIT -> {
+                                    localError = "El pulso debe estar entre $MIN_HR_LIMIT y $MAX_HR_LIMIT BPM."
+                                }
+                                else -> viewmodel.addAnimal(a)
+                            }
                         }
-                        a.minHeartRate > a.maxHeartRate -> {
-                            localError = "Min heart rate cannot exceed max heart rate."
-                        }
-                        a.minTemperature < MIN_TEMP_LIMIT || a.maxTemperature > MAX_TEMP_LIMIT -> {
-                            localError = "Temperature must be between $MIN_TEMP_LIMIT and $MAX_TEMP_LIMIT °C."
-                        }
-                        a.minHeartRate < MIN_HR_LIMIT || a.maxHeartRate > MAX_HR_LIMIT -> {
-                            localError = "Heart rate must be between $MIN_HR_LIMIT and $MAX_HR_LIMIT BPM."
-                        }
-                        else -> viewmodel.addAnimal(a)
                     }
                 },
                 isLoading = isLoading,
@@ -394,7 +410,7 @@ private fun FormAnimalView(
                 enabled = !isLoading
             ) {
                 Text(
-                    text = "Cancel",
+                    text = "Cancelar",
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -469,7 +485,7 @@ private fun DatePickerField(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    val calendar = Calendar.getInstance()
+    val peruCal = Calendar.getInstance(TimeZone.getTimeZone("America/Lima"))
     val datePickerDialog = remember {
         android.app.DatePickerDialog(
             context,
@@ -477,10 +493,12 @@ private fun DatePickerField(
                 val selected = LocalDate.of(year, month + 1, dayOfMonth)
                 onDateChange(selected.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
             },
-            calendar.get(Calendar.YEAR),
-            calendar.get(Calendar.MONTH),
-            calendar.get(Calendar.DAY_OF_MONTH)
-        )
+            peruCal.get(Calendar.YEAR),
+            peruCal.get(Calendar.MONTH),
+            peruCal.get(Calendar.DAY_OF_MONTH)
+        ).apply {
+            datePicker.maxDate = peruCal.timeInMillis
+        }
     }
 
     Surface(
@@ -499,12 +517,12 @@ private fun DatePickerField(
         ) {
             Column {
                 Text(
-                    text = "Birthdate",
+                    text = "Fecha de nacimiento",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
-                    text = date.ifBlank { "Select date" },
+                    text = date.ifBlank { "Seleccionar fecha" },
                     style = MaterialTheme.typography.bodyLarge,
                     color = if (date.isBlank()) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                     else MaterialTheme.colorScheme.onSurface
@@ -523,6 +541,7 @@ private fun DatePickerField(
 @Composable
 private fun BarnDropdown(
     barns: List<Barn>,
+    animals: List<Animal>,
     selectedBarnId: Int,
     onBarnSelected: (Int) -> Unit,
     modifier: Modifier = Modifier
@@ -547,12 +566,12 @@ private fun BarnDropdown(
             ) {
                 Column {
                     Text(
-                        text = "Barn",
+                        text = "Establo",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        text = selectedBarn?.name ?: "Select barn",
+                        text = selectedBarn?.name ?: "Seleccionar establo",
                         style = MaterialTheme.typography.bodyLarge,
                         color = if (selectedBarn != null) MaterialTheme.colorScheme.onSurface
                         else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
@@ -570,12 +589,25 @@ private fun BarnDropdown(
                 onDismissRequest = { expanded = false }
             ) {
                 barns.forEach { barn ->
+                    val currentCount = animals.count { it.barnId == barn.id }
+                    val limit = barn.limit.toIntOrNull() ?: 0
+                    val label = if (limit > 0) "${barn.name} ($currentCount/$limit)" else barn.name
+                    val isFull = limit > 0 && currentCount >= limit
                     DropdownMenuItem(
                         onClick = {
-                            onBarnSelected(barn.id)
-                            expanded = false
+                            if (!isFull) {
+                                onBarnSelected(barn.id)
+                                expanded = false
+                            }
                         },
-                        text = { Text(barn.name) }
+                        text = {
+                            Text(
+                                text = label,
+                                color = if (isFull) MaterialTheme.colorScheme.error
+                                else MaterialTheme.colorScheme.onSurface
+                            )
+                        },
+                        enabled = !isFull
                     )
                 }
             }
@@ -610,12 +642,12 @@ private fun BreedDropdown(
             ) {
                 Column {
                     Text(
-                        text = "Breed",
+                        text = "Raza",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        text = selectedBreed?.name ?: "Select breed",
+                        text = selectedBreed?.name ?: "Seleccionar raza",
                         style = MaterialTheme.typography.bodyLarge,
                         color = if (selectedBreed != null) MaterialTheme.colorScheme.onSurface
                         else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)

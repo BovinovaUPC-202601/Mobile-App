@@ -65,29 +65,29 @@ import pe.edu.upc.vacapp.subscription.presentation.view.SubscriptionView
 import pe.edu.upc.vacapp.shared.session.SessionManager
 
 private val drawerItems: List<DrawerItem> = listOf(
-    DrawerItem("home", "Home", Icons.Default.Home),
-    DrawerItem("animals", "Animals", Icons.Default.Pets),
-    DrawerItem("campaign", "Campaigns", Icons.Default.MedicalServices),
-    DrawerItem("barn", "Barns", Icons.Default.Warehouse),
-    DrawerItem("monitoring", "Monitoring", Icons.Default.Analytics),
-    DrawerItem("alerts", "Alerts", Icons.Default.Notifications),
-    DrawerItem("ai-assistant", "AI Assistant", Icons.Default.AutoAwesome),
-    DrawerItem("subscription", "Subscription", Icons.Default.WorkspacePremium)
+    DrawerItem("home", "Inicio", Icons.Default.Home),
+    DrawerItem("animals", "Animales", Icons.Default.Pets),
+    DrawerItem("campaign", "Campañas", Icons.Default.MedicalServices),
+    DrawerItem("barn", "Establos", Icons.Default.Warehouse),
+    DrawerItem("monitoring", "Monitoreo", Icons.Default.Analytics, plusOnly = true),
+    DrawerItem("alerts", "Alertas", Icons.Default.Notifications),
+    DrawerItem("ai-assistant", "Asistente IA", Icons.Default.AutoAwesome, plusOnly = true),
+    DrawerItem("subscription", "Suscripción", Icons.Default.WorkspacePremium)
 )
 
 private fun pageTitleFor(route: String?): String? = when (route) {
-    "home" -> "Home"
-    "animals" -> "Animals"
-    "campaign" -> "Campaigns"
-    "barn" -> "Barns"
-    "monitoring" -> "Monitoring"
-    "alerts" -> "Alerts"
-    "ai-assistant" -> "AI Assistant"
-    "subscription" -> "Subscription"
-    "add-campaign", "add-barn", "add-animal", "add-inventory" -> "Add"
-    "animal-details" -> "Animal details"
-    "inventory-details" -> "Inventory details"
-    "barn-details" -> "Barns"
+    "home" -> "Inicio"
+    "animals" -> "Animales"
+    "campaign" -> "Campañas"
+    "barn" -> "Establos"
+    "monitoring" -> "Monitoreo"
+    "alerts" -> "Alertas"
+    "ai-assistant" -> "Asistente IA"
+    "subscription" -> "Suscripción"
+    "add-campaign", "add-barn", "add-animal", "add-inventory" -> "Añadir"
+    "animal-details" -> "Detalles del animal"
+    "inventory-details" -> "Detalles del inventario"
+    "barn-details" -> "Establos"
     else -> null
 }
 
@@ -105,12 +105,28 @@ fun Navigation(
     val homeViewModel = getHomeViewModel()
     val monitoringViewModel = getMonitoringViewModel()
     val alertViewModel = getAlertViewModel()
+    val drawerSubscriptionViewModel = getSubscriptionViewModel()
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
     val userInfo by homeViewModel.userInfo.collectAsState()
+    val currentSubscription by drawerSubscriptionViewModel.current.collectAsState()
+    // Free/Plus badge in the drawer header (mirrors the web sidebar badge).
+    val planLabel = currentSubscription?.let { if (it.isPlusActive) "Plus" else "Gratis" } ?: "Gratis"
+    // Reload the plan on every screen change so the gating reflects upgrades/downgrades
+    // (cancel happens on a different VM instance, so we re-fetch here).
+    LaunchedEffect(currentRoute) { drawerSubscriptionViewModel.load() }
+
+    // Guard: if a Free user is sitting on a Plus-only screen (e.g. after a downgrade),
+    // bounce them back to Home. Only acts once we know the plan (subscription != null).
+    LaunchedEffect(currentRoute, currentSubscription) {
+        val plusRoutes = setOf("monitoring", "ai-assistant")
+        if (currentSubscription?.isPlusActive == false && currentRoute in plusRoutes) {
+            navController.navigate("home") { launchSingleTop = true }
+        }
+    }
     val pageTitle = pageTitleFor(currentRoute)
-    val greeting = "Hello, ${userInfo.name.ifBlank { "there" }}"
+    val greeting = "Hola, ${userInfo.name.ifBlank { "ahí" }}"
 
     fun navigateTo(route: String) {
         navController.navigate(route) {
@@ -130,7 +146,9 @@ fun Navigation(
         drawerContent = {
             AppDrawer(
                 userName = userInfo.name,
-                items = drawerItems,
+                // Hide Plus-only features (IA, Monitoring) once we know the user isn't an
+                // active Plus. While the subscription is still loading (null) we keep them.
+                items = drawerItems.filter { !it.plusOnly || currentSubscription?.isPlusActive != false },
                 activeRoute = currentRoute,
                 onItemClick = { item -> scope.launch { drawerState.close() }; navigateTo(item.route) },
                 onSignOut = {
@@ -138,7 +156,8 @@ fun Navigation(
                     // next user never inherits this session's state.
                     SessionManager.logout()
                     goToLogin()
-                }
+                },
+                plan = planLabel
             )
         }
     ) {
@@ -287,6 +306,7 @@ fun Navigation(
                     val viewmodel = getAnimalViewModel()
                     viewmodel.getBarns()
                     viewmodel.getBreeds()
+                    viewmodel.getAllAnimals()
                     AddAnimalForm(
                         viewmodel,
                         goHome = { navigateTo("home") },

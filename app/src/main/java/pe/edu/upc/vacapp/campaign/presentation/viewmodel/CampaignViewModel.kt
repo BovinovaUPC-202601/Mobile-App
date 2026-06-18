@@ -23,6 +23,10 @@ class CampaignViewModel(
 
     private val _addSuccess = MutableStateFlow(false)
     val addSuccess: StateFlow<Boolean> = _addSuccess
+
+    private val _errorMessage = MutableStateFlow<String?>(null)
+    val errorMessage: StateFlow<String?> = _errorMessage
+
     fun addCanpaing(campaign: Campaign) {
         viewModelScope.launch {
             _isLoading.value = true
@@ -31,6 +35,7 @@ class CampaignViewModel(
                 _addSuccess.value = true
                 getCampaing()
             } catch (e: Exception) {
+                _errorMessage.value = e.message ?: "Error al añadir campaña"
                 _addSuccess.value = false
             } finally {
                 _isLoading.value = false
@@ -42,15 +47,29 @@ class CampaignViewModel(
     }
     fun getCampaing() {
         viewModelScope.launch {
-
-            _campaigns.value = campaingRepository.getCampaing()
-
+            try {
+                _campaigns.value = campaingRepository.getCampaing()
+            } catch (e: Exception) {
+                _errorMessage.value = e.message ?: "Error al obtener campañas"
+            }
         }
     }
 
     fun getBarns() {
         viewModelScope.launch {
-            _barns.value = campaingRepository.getBarns()
+            try {
+                _barns.value = campaingRepository.getBarns()
+            } catch (e: Exception) {
+                _errorMessage.value = e.message ?: "Error al obtener establos"
+            }
         }
+    }
+
+    fun resetErrorMessage() {
+        _errorMessage.value = null
+    }
+
+    init {
+        getBarns()
     }
 }
