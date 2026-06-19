@@ -123,6 +123,7 @@ fun AddProductView(
                             id = editProduct?.id ?: 0,
                             name = name,
                             categoryId = selectedCategoryId,
+                            categoryName = selectedCategoryName,
                             quantity = qty,
                             unit = selectedUnit.ifBlank { null },
                             expirationDate = expirationDate.ifBlank { null }
@@ -138,6 +139,7 @@ fun AddProductView(
                     id = editProduct?.id ?: 0,
                     name = name,
                     categoryId = selectedCategoryId,
+                    categoryName = selectedCategoryName,
                     quantity = qty,
                     unit = selectedUnit.ifBlank { null },
                     expirationDate = null

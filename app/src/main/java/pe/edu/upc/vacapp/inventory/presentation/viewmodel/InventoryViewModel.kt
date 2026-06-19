@@ -33,11 +33,28 @@ class InventoryViewModel(
     private val _deleteSuccess = MutableStateFlow(false)
     val deleteSuccess: StateFlow<Boolean> = _deleteSuccess
 
+    private suspend fun refreshAllInternal() {
+        val products = inventoryRepository.getProducts()
+        val categoryResponses = inventoryRepository.getCategories()
+        _products.value = products.map { p ->
+            val catName = categoryResponses.find { it.id == p.categoryId }?.name ?: ""
+            p.copy(categoryName = catName)
+        }
+        _categories.value = categoryResponses.map {
+            it.toCategory(products.count { p -> p.categoryId == it.id })
+        }
+    }
+
     fun getProducts() {
         viewModelScope.launch {
             _isProductLoading.value = true
             try {
-                _products.value = inventoryRepository.getProducts()
+                val products = inventoryRepository.getProducts()
+                val categoryResponses = inventoryRepository.getCategories()
+                _products.value = products.map { p ->
+                    val catName = categoryResponses.find { it.id == p.categoryId }?.name ?: ""
+                    p.copy(categoryName = catName)
+                }
             } catch (e: Exception) {
                 _errorMessage.value = e.message ?: "Error al obtener productos"
             } finally {
@@ -65,13 +82,7 @@ class InventoryViewModel(
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                val products = inventoryRepository.getProducts()
-                _products.value = products
-                val categoryResponses = inventoryRepository.getCategories()
-                _categories.value = categoryResponses.map { catResp ->
-                    val count = products.count { it.categoryId == catResp.id }
-                    catResp.toCategory(count)
-                }
+                refreshAllInternal()
             } catch (e: Exception) {
                 _errorMessage.value = e.message ?: "Error al cargar inventario"
             } finally {
@@ -85,8 +96,8 @@ class InventoryViewModel(
             _isLoading.value = true
             try {
                 inventoryRepository.createProduct(product)
+                refreshAllInternal()
                 _addSuccess.value = true
-                refreshAll()
             } catch (e: Exception) {
                 _errorMessage.value = e.message ?: "Error al crear producto"
                 _addSuccess.value = false
@@ -101,8 +112,8 @@ class InventoryViewModel(
             _isLoading.value = true
             try {
                 inventoryRepository.updateProduct(product)
+                refreshAllInternal()
                 _addSuccess.value = true
-                refreshAll()
             } catch (e: Exception) {
                 _errorMessage.value = e.message ?: "Error al actualizar producto"
                 _addSuccess.value = false
@@ -117,8 +128,8 @@ class InventoryViewModel(
             _isLoading.value = true
             try {
                 inventoryRepository.deleteProduct(id)
+                refreshAllInternal()
                 _deleteSuccess.value = true
-                refreshAll()
             } catch (e: Exception) {
                 _errorMessage.value = e.message ?: "Error al eliminar producto"
                 _deleteSuccess.value = false
@@ -133,8 +144,8 @@ class InventoryViewModel(
             _isLoading.value = true
             try {
                 inventoryRepository.createCategory(category)
+                refreshAllInternal()
                 _addSuccess.value = true
-                refreshAll()
             } catch (e: Exception) {
                 _errorMessage.value = e.message ?: "Error al crear categoría"
                 _addSuccess.value = false
@@ -149,8 +160,8 @@ class InventoryViewModel(
             _isLoading.value = true
             try {
                 inventoryRepository.updateCategory(category)
+                refreshAllInternal()
                 _addSuccess.value = true
-                refreshAll()
             } catch (e: Exception) {
                 _errorMessage.value = e.message ?: "Error al actualizar categoría"
                 _addSuccess.value = false
@@ -165,8 +176,8 @@ class InventoryViewModel(
             _isLoading.value = true
             try {
                 inventoryRepository.deleteCategory(id)
+                refreshAllInternal()
                 _deleteSuccess.value = true
-                refreshAll()
             } catch (e: Exception) {
                 _errorMessage.value = e.message ?: "Error al eliminar categoría"
                 _deleteSuccess.value = false
