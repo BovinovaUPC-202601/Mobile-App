@@ -133,21 +133,26 @@ fun HomeView(
                     }
                 }
 
-                StatCard(
-                    label = "Productos",
-                    value = userInfo.totalProducts.toString(),
-                    icon = Icons.Filled.Inventory2,
-                    accent = StatCardAccent.Sand,
-                    onClick = onTapInventorySection
-                )
-
-                StatCard(
-                    label = "Categorías",
-                    value = totalCategories.toString(),
-                    icon = Icons.Filled.Folder,
-                    accent = StatCardAccent.Emerald,
-                    onClick = onTapInventorySection
-                )
+                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Box(modifier = Modifier.weight(1f)) {
+                        StatCard(
+                            label = "Productos",
+                            value = userInfo.totalProducts.toString(),
+                            icon = Icons.Filled.Inventory2,
+                            accent = StatCardAccent.Sand,
+                            onClick = onTapInventorySection
+                        )
+                    }
+                    Box(modifier = Modifier.weight(1f)) {
+                        StatCard(
+                            label = "Categorías",
+                            value = totalCategories.toString(),
+                            icon = Icons.Filled.Folder,
+                            accent = StatCardAccent.Emerald,
+                            onClick = onTapInventorySection
+                        )
+                    }
+                }
 
                 Spacer(modifier = Modifier.weight(1f))
 

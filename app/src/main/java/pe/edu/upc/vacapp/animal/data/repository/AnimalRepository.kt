@@ -97,6 +97,13 @@ open class AnimalRepository(
         return@withContext emptyList()
     }
 
+    suspend fun deleteAnimal(id: Int) = withContext(Dispatchers.IO) {
+        val res = animalService.deleteAnimal(id)
+        if (!res.isSuccessful) {
+            throw Exception(res.errorMessage())
+        }
+    }
+
     suspend fun createBreed(request: BreedRequest): Breed = withContext(Dispatchers.IO) {
         val res = animalService.createBreed(request)
         if (res.isSuccessful) {

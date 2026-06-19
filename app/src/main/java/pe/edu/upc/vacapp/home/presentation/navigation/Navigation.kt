@@ -276,6 +276,12 @@ fun Navigation(
                         },
                         onTapAddAnimal = {
                             navController.navigate("add-animal")
+                        },
+                        onEdit = {
+                            navController.navigate("edit-animal/${it.id}")
+                        },
+                        onDelete = { animal ->
+                            viewmodel.deleteAnimal(animal.id)
                         }
                     )
                 }
@@ -319,7 +325,34 @@ fun Navigation(
                         viewmodel,
                         goHome = { navigateTo("home") },
                         goAnimals = { navigateTo("animals") },
-                        onManageBreeds = { navController.navigate("manage-breeds") }
+                        onManageBreeds = { navController.navigate("manage-breeds") },
+                        editAnimal = null
+                    )
+                }
+
+                composable("edit-animal/{animalId}") { backStackEntry ->
+                    val viewmodel = getAnimalViewModel()
+                    viewmodel.getBarns()
+                    viewmodel.getBreeds()
+                    viewmodel.getAllAnimals()
+                    val animalId = backStackEntry.arguments?.getString("animalId")?.toIntOrNull()
+                    if (animalId == null) {
+                        navigateTo("animals")
+                        return@composable
+                    }
+                    val animals by viewmodel.animals.collectAsState()
+                    LaunchedEffect(Unit) {
+                        if (animals.isEmpty()) viewmodel.getAllAnimals()
+                    }
+                    val editAnimal = remember(animalId, animals) {
+                        animals.find { it.id == animalId }
+                    }
+                    AddAnimalForm(
+                        viewmodel,
+                        goHome = { navigateTo("home") },
+                        goAnimals = { navigateTo("animals") },
+                        onManageBreeds = { navController.navigate("manage-breeds") },
+                        editAnimal = editAnimal
                     )
                 }
 

@@ -65,4 +65,7 @@ interface AnimalService {
 
     @DELETE("bovines/breeds/{id}")
     suspend fun deleteBreed(@Path("id") id: Int): Response<Unit>
+
+    @DELETE("bovines/{id}")
+    suspend fun deleteAnimal(@Path("id") id: Int): Response<Unit>
 }

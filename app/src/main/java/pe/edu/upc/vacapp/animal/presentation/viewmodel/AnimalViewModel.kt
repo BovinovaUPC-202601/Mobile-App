@@ -28,6 +28,12 @@ class AnimalViewModel(
     //
     private val _addAnimalSuccess = MutableStateFlow(false)
     val addAnimalSuccess: StateFlow<Boolean> = _addAnimalSuccess
+    //
+    private val _deleteSuccess = MutableStateFlow(false)
+    val deleteSuccess: StateFlow<Boolean> = _deleteSuccess
+    //
+    private val _updateSuccess = MutableStateFlow(false)
+    val updateSuccess: StateFlow<Boolean> = _updateSuccess
     private val _breeds = MutableStateFlow<List<Breed>>(emptyList())
     val breeds: StateFlow<List<Breed>> = _breeds
     private val _isLoading = MutableStateFlow(false)
@@ -72,6 +78,25 @@ class AnimalViewModel(
         _addAnimalSuccess.value = false
     }
     //
+    fun deleteAnimal(id: Int) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                animalRepository.deleteAnimal(id)
+                _deleteSuccess.value = true
+                getAllAnimals()
+            } catch (e: Exception) {
+                _errorMessage.value = e.message ?: "Error al eliminar animal"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun clearDeleteSuccess() {
+        _deleteSuccess.value = false
+    }
+    //
     fun getAllAnimals() {
         viewModelScope.launch {
             try {
@@ -112,6 +137,7 @@ class AnimalViewModel(
             _isLoading.value = true
             try {
                 _updatedAnimal.value = animalRepository.updateAnimal(animal)
+                _updateSuccess.value = true
             } catch (e: Exception) {
                 _errorMessage.value = e.message ?: "Error al actualizar animal"
             } finally {
@@ -122,6 +148,10 @@ class AnimalViewModel(
 
     fun clearUpdatedAnimal() {
         _updatedAnimal.value = null
+    }
+
+    fun clearUpdateSuccess() {
+        _updateSuccess.value = false
     }
 
     fun clearBreedError() {
