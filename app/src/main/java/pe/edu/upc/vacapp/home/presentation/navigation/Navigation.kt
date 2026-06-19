@@ -54,8 +54,6 @@ import pe.edu.upc.vacapp.iam.presentation.view.components.AppTopBar
 import pe.edu.upc.vacapp.iam.presentation.view.components.DrawerItem
 import pe.edu.upc.vacapp.alerts.presentation.di.PresentationModule.getAlertViewModel
 import pe.edu.upc.vacapp.alerts.presentation.view.AlertView
-import pe.edu.upc.vacapp.inventory.domain.model.Category
-import pe.edu.upc.vacapp.inventory.domain.model.Product
 import pe.edu.upc.vacapp.inventory.presentation.di.PresentationModule.getInventoryViewModel
 import pe.edu.upc.vacapp.inventory.presentation.view.AddCategoryView
 import pe.edu.upc.vacapp.inventory.presentation.view.AddProductView
@@ -89,11 +87,10 @@ private fun pageTitleFor(route: String?): String? = when (route) {
     "ai-assistant" -> "Asistente IA"
     "subscription" -> "Suscripción"
     "inventory" -> "Inventario"
-    "add-campaign", "add-barn", "add-animal", "add-inventory", "add-category" -> "Añadir"
     "manage-breeds" -> "Administrar razas"
     "animal-details" -> "Detalles del animal"
     "barn-details" -> "Establos"
-    else -> null
+    else -> if (route?.startsWith("add-") == true || route?.startsWith("edit-") == true) "Añadir" else null
 }
 
 @Preview
@@ -105,8 +102,6 @@ fun Navigation(
     val navController = rememberNavController()
     val scope = rememberCoroutineScope()
     val selectedAnimal = remember { mutableStateOf<Animal?>(null) }
-    val selectedProduct = remember { mutableStateOf<Product?>(null) }
-    val selectedCategory = remember { mutableStateOf<Category?>(null) }
     val selectedBarn = remember { mutableStateOf<Barn?>(null) }
     val homeViewModel = getHomeViewModel()
     val monitoringViewModel = getMonitoringViewModel()
@@ -185,9 +180,16 @@ fun Navigation(
             ) {
                 composable("home") {
                     homeViewModel.getUserInfo()
+                    val inventoryViewModel = getInventoryViewModel()
+                    LaunchedEffect(Unit) { inventoryViewModel.getProducts() }
+                    val products by inventoryViewModel.products.collectAsState()
+                    val categoryCount = remember(products) {
+                        products.map { it.categoryId }.distinct().size
+                    }
 
                     HomeView(
                         viewmodel = homeViewModel,
+                        totalCategories = categoryCount,
                         onTapAddCampaign = { navController.navigate("add-campaign") },
                         onTapAddBarn = { navController.navigate("add-barn") },
                         onTapAnimal = { navController.navigate("add-animal") },
@@ -285,12 +287,10 @@ fun Navigation(
                         onAddProduct = { navController.navigate("add-inventory") },
                         onAddCategory = { navController.navigate("add-category") },
                         onEditProduct = { product ->
-                            selectedProduct.value = product
-                            navController.navigate("add-inventory")
+                            navController.navigate("edit-inventory/${product.id}")
                         },
                         onEditCategory = { category ->
-                            selectedCategory.value = category
-                            navController.navigate("add-category")
+                            navController.navigate("edit-category/${category.id}")
                         }
                     )
                 }
@@ -333,8 +333,27 @@ fun Navigation(
 
                 composable("add-inventory") {
                     val viewmodel = getInventoryViewModel()
-                    val editProduct = selectedProduct.value
-                    selectedProduct.value = null
+                    AddProductView(
+                        goHome = { navigateTo("home") },
+                        viewModel = viewmodel,
+                        editProduct = null
+                    )
+                }
+
+                composable("edit-inventory/{productId}") { backStackEntry ->
+                    val viewmodel = getInventoryViewModel()
+                    val productId = backStackEntry.arguments?.getString("productId")?.toIntOrNull()
+                    if (productId == null) {
+                        navigateTo("home")
+                        return@composable
+                    }
+                    val products by viewmodel.products.collectAsState()
+                    LaunchedEffect(Unit) {
+                        if (products.isEmpty()) viewmodel.getProducts()
+                    }
+                    val editProduct = remember(productId, products) {
+                        products.find { it.id == productId }
+                    }
                     AddProductView(
                         goHome = { navigateTo("home") },
                         viewModel = viewmodel,
@@ -344,8 +363,27 @@ fun Navigation(
 
                 composable("add-category") {
                     val viewmodel = getInventoryViewModel()
-                    val editCategory = selectedCategory.value
-                    selectedCategory.value = null
+                    AddCategoryView(
+                        goHome = { navigateTo("home") },
+                        viewModel = viewmodel,
+                        editCategory = null
+                    )
+                }
+
+                composable("edit-category/{categoryId}") { backStackEntry ->
+                    val viewmodel = getInventoryViewModel()
+                    val categoryId = backStackEntry.arguments?.getString("categoryId")?.toIntOrNull()
+                    if (categoryId == null) {
+                        navigateTo("home")
+                        return@composable
+                    }
+                    val categories by viewmodel.categories.collectAsState()
+                    LaunchedEffect(Unit) {
+                        if (categories.isEmpty()) viewmodel.getCategories()
+                    }
+                    val editCategory = remember(categoryId, categories) {
+                        categories.find { it.id == categoryId }
+                    }
                     AddCategoryView(
                         goHome = { navigateTo("home") },
                         viewModel = viewmodel,

@@ -62,7 +62,8 @@ fun HomeView(
     onTapCampaignSection: () -> Unit = {},
     onTapBarnSection: () -> Unit = {},
     onTapInventorySection: () -> Unit = {},
-    viewmodel: HomeViewModel
+    viewmodel: HomeViewModel,
+    totalCategories: Int = 0
 ) {
     val userInfo by viewmodel.userInfo.collectAsState()
     val errorMessage by viewmodel.errorMessage.collectAsState()
@@ -131,6 +132,22 @@ fun HomeView(
                         )
                     }
                 }
+
+                StatCard(
+                    label = "Productos",
+                    value = userInfo.totalProducts.toString(),
+                    icon = Icons.Filled.Inventory2,
+                    accent = StatCardAccent.Sand,
+                    onClick = onTapInventorySection
+                )
+
+                StatCard(
+                    label = "Categorías",
+                    value = totalCategories.toString(),
+                    icon = Icons.Filled.Folder,
+                    accent = StatCardAccent.Emerald,
+                    onClick = onTapInventorySection
+                )
 
                 Spacer(modifier = Modifier.weight(1f))
 
