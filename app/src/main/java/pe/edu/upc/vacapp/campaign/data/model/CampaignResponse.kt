@@ -16,6 +16,7 @@ data class CampaignResponse(
 ) {
     fun toCampaign(): Campaign {
         return Campaign(
+            id = id,
             name = name,
             description = description,
             startDate = startDate,

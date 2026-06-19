@@ -208,7 +208,9 @@ fun Navigation(
                     viewmodel.getCampaing()
                     CampaignView(
                         viewModel = viewmodel,
-                        onTapAddCampaign = { navController.navigate("add-campaign") }
+                        onTapAddCampaign = { navController.navigate("add-campaign") },
+                        onEdit = { navController.navigate("edit-campaign/${it.id}") },
+                        onDelete = { viewmodel.deleteCampaign(it) }
                     )
                 }
 
@@ -218,7 +220,31 @@ fun Navigation(
                     viewmodel.getAnimals()
                     FormCampaignView(
                         goHome = { navigateTo("home") },
-                        viewModel = viewmodel
+                        viewModel = viewmodel,
+                        editCampaign = null
+                    )
+                }
+
+                composable("edit-campaign/{campaignId}") { backStackEntry ->
+                    val viewmodel = getCampaignViewModel()
+                    viewmodel.getBarns()
+                    viewmodel.getAnimals()
+                    val campaignId = backStackEntry.arguments?.getString("campaignId")?.toIntOrNull()
+                    if (campaignId == null) {
+                        navigateTo("home")
+                        return@composable
+                    }
+                    val campaigns by viewmodel.campaigns.collectAsState()
+                    LaunchedEffect(Unit) {
+                        if (campaigns.isEmpty()) viewmodel.getCampaing()
+                    }
+                    val editCampaign = remember(campaignId, campaigns) {
+                        campaigns.find { it.id == campaignId }
+                    }
+                    FormCampaignView(
+                        goHome = { navigateTo("home") },
+                        viewModel = viewmodel,
+                        editCampaign = editCampaign
                     )
                 }
 

@@ -5,6 +5,7 @@ import kotlinx.coroutines.withContext
 import pe.edu.upc.vacapp.barn.domain.model.Barn
 import pe.edu.upc.vacapp.campaign.data.model.BovineResponse
 import pe.edu.upc.vacapp.campaign.data.model.CreateCampaignRequest
+import pe.edu.upc.vacapp.campaign.data.model.UpdateCampaignRequest
 import pe.edu.upc.vacapp.campaign.data.remote.CampaignService
 import pe.edu.upc.vacapp.campaign.domain.model.Campaign
 import pe.edu.upc.vacapp.shared.data.remote.errorMessage
@@ -54,6 +55,23 @@ class CampaingRepository(
         if (response.isSuccessful) {
             response.body() ?: emptyList()
         } else {
+            throw Exception(response.errorMessage())
+        }
+    }
+
+    suspend fun updateCampaign(campaign: Campaign) = withContext(Dispatchers.IO) {
+        val data = UpdateCampaignRequest.fromCampaign(campaign)
+        val response = campaignService.updateCampaign(campaign.id, data)
+        if (response.isSuccessful) {
+            response.body()
+        } else {
+            throw Exception(response.errorMessage())
+        }
+    }
+
+    suspend fun deleteCampaign(id: Int) = withContext(Dispatchers.IO) {
+        val response = campaignService.deleteCampaign(id)
+        if (!response.isSuccessful) {
             throw Exception(response.errorMessage())
         }
     }

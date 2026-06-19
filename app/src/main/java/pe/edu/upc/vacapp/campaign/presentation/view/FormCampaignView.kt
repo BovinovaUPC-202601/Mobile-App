@@ -63,19 +63,22 @@ import pe.edu.upc.vacapp.ui.theme.Error40
 @Composable
 fun FormCampaignView(
     goHome: () -> Unit,
-    viewModel: CampaignViewModel
+    viewModel: CampaignViewModel,
+    editCampaign: Campaign? = null,
 ) {
-    var name by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
-    var startDate by remember { mutableStateOf(DateUtils.today()) }
-    var endDate by remember { mutableStateOf(DateUtils.today()) }
+    val isEditing = editCampaign != null
+    var name by remember(editCampaign) { mutableStateOf(editCampaign?.name ?: "") }
+    var description by remember(editCampaign) { mutableStateOf(editCampaign?.description ?: "") }
+    var startDate by remember(editCampaign) { mutableStateOf(editCampaign?.startDate ?: DateUtils.today()) }
+    var endDate by remember(editCampaign) { mutableStateOf(editCampaign?.endDate ?: DateUtils.today()) }
     var localError by remember { mutableStateOf("") }
     val isLoading by viewModel.isLoading.collectAsState()
     val addSuccess by viewModel.addSuccess.collectAsState()
+    val updateSuccess by viewModel.updateSuccess.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
     val barns by viewModel.barn.collectAsState()
-    var selectedBarnIds by remember { mutableStateOf(setOf<Int>()) }
-    var selectedBovineIds by remember { mutableStateOf(setOf<Int>()) }
+    var selectedBarnIds by remember(editCampaign) { mutableStateOf(editCampaign?.stableIds?.toSet() ?: emptySet()) }
+    var selectedBovineIds by remember(editCampaign) { mutableStateOf(editCampaign?.bovineIds?.toSet() ?: emptySet()) }
     val animals by viewModel.animals.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -87,6 +90,13 @@ fun FormCampaignView(
         if (addSuccess) {
             goHome()
             viewModel.resetAddSuccess()
+        }
+    }
+
+    LaunchedEffect(updateSuccess) {
+        if (updateSuccess) {
+            viewModel.clearUpdateSuccess()
+            goHome()
         }
     }
 
@@ -110,16 +120,22 @@ fun FormCampaignView(
             } else if (selectedBarnIds.isEmpty() && selectedBovineIds.isEmpty()) {
                 localError = "Selecciona al menos un establo o un bovino."
             } else {
-                viewModel.addCanpaing(
-                    Campaign(
-                        name = name,
-                        description = description,
-                        startDate = startDate,
-                        endDate = endDate,
-                        stableIds = selectedBarnIds.toList(),
-                        bovineIds = selectedBovineIds.toList(),
-                    )
+                val campaign = Campaign(
+                    id = editCampaign?.id ?: 0,
+                    name = name,
+                    description = description,
+                    startDate = startDate,
+                    endDate = endDate,
+                    stableIds = selectedBarnIds.toList(),
+                    stableNames = editCampaign?.stableNames ?: emptyList(),
+                    bovineIds = selectedBovineIds.toList(),
+                    bovineNames = editCampaign?.bovineNames ?: emptyList(),
                 )
+                if (isEditing) {
+                    viewModel.updateCampaign(campaign)
+                } else {
+                    viewModel.addCanpaing(campaign)
+                }
             }
         }
     }
@@ -164,7 +180,7 @@ fun FormCampaignView(
                         verticalArrangement = Arrangement.spacedBy(18.dp)
                     ) {
                         Text(
-                            text = "Añadir campaña",
+                            text = if (isEditing) "Editar campaña" else "Añadir campaña",
                             style = MaterialTheme.typography.headlineSmall,
                             color = MaterialTheme.colorScheme.onSurface
                         )
@@ -231,7 +247,7 @@ fun FormCampaignView(
                     }
 
                     PrimaryButton(
-                        label = "Guardar campaña",
+                        label = if (isEditing) "Guardar cambios" else "Guardar campaña",
                         onClick = { submit() },
                         isLoading = isLoading,
                         enabled = name.isNotBlank()
