@@ -4,6 +4,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import pe.edu.upc.vacapp.Vacapp
 import pe.edu.upc.vacapp.animal.data.model.AddAnimalRequest
+import pe.edu.upc.vacapp.animal.data.model.BreedRequest
 import pe.edu.upc.vacapp.animal.data.model.UpdateAnimalRequest
 import pe.edu.upc.vacapp.animal.data.model.toMultipartPart
 import pe.edu.upc.vacapp.animal.data.model.toRequestBody
@@ -11,6 +12,7 @@ import pe.edu.upc.vacapp.animal.data.remote.AnimalService
 import pe.edu.upc.vacapp.animal.domain.model.Animal
 import pe.edu.upc.vacapp.animal.domain.model.Breed
 import pe.edu.upc.vacapp.barn.domain.model.Barn
+import pe.edu.upc.vacapp.shared.data.remote.errorMessage
 import java.io.File
 
 open class AnimalRepository(
@@ -93,6 +95,31 @@ open class AnimalRepository(
         }
 
         return@withContext emptyList()
+    }
+
+    suspend fun createBreed(request: BreedRequest): Breed = withContext(Dispatchers.IO) {
+        val res = animalService.createBreed(request)
+        if (res.isSuccessful) {
+            res.body()?.toBreed() ?: throw Exception("Error al crear raza")
+        } else {
+            throw Exception(res.errorMessage())
+        }
+    }
+
+    suspend fun updateBreed(id: Int, request: BreedRequest): Breed = withContext(Dispatchers.IO) {
+        val res = animalService.updateBreed(id, request)
+        if (res.isSuccessful) {
+            res.body()?.toBreed() ?: throw Exception("Error al actualizar raza")
+        } else {
+            throw Exception(res.errorMessage())
+        }
+    }
+
+    suspend fun deleteBreed(id: Int) = withContext(Dispatchers.IO) {
+        val res = animalService.deleteBreed(id)
+        if (!res.isSuccessful) {
+            throw Exception(res.errorMessage())
+        }
     }
 
     suspend fun copyFileToInternalStorage(sourceFile: File): File? = withContext(Dispatchers.IO) {

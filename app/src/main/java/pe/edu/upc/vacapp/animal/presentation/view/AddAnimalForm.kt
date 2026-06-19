@@ -75,7 +75,8 @@ import java.util.TimeZone
 fun AddAnimalForm(
     viewmodel: AnimalViewModel,
     goHome: () -> Unit,
-    goAnimals: () -> Unit
+    goAnimals: () -> Unit,
+    onManageBreeds: () -> Unit = {}
 ) {
     Box(
         modifier = Modifier
@@ -93,7 +94,8 @@ fun AddAnimalForm(
             FormAnimalView(
                 viewmodel = viewmodel,
                 goHome = goHome,
-                goAnimals = goAnimals
+                goAnimals = goAnimals,
+                onManageBreeds = onManageBreeds
             )
         }
     }
@@ -108,7 +110,8 @@ private const val MAX_HR_LIMIT = 150
 private fun FormAnimalView(
     viewmodel: AnimalViewModel,
     goHome: () -> Unit,
-    goAnimals: () -> Unit
+    goAnimals: () -> Unit,
+    onManageBreeds: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val isLoading by viewmodel.isLoading.collectAsState()
@@ -283,6 +286,17 @@ private fun FormAnimalView(
                 GenderToggle(
                     isMale = animal.isMale,
                     onClick = { animal = animal.copy(isMale = !animal.isMale) }
+                )
+            }
+
+            TextButton(
+                onClick = onManageBreeds,
+                modifier = Modifier.align(Alignment.End)
+            ) {
+                Text(
+                    text = "Administrar razas",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = Emerald40
                 )
             }
 

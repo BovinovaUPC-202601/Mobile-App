@@ -8,7 +8,8 @@ data class BreedResponse(
     val minTemperature: Double,
     val maxTemperature: Double,
     val minHeartRate: Int,
-    val maxHeartRate: Int
+    val maxHeartRate: Int,
+    val userId: Int? = null
 ){
     fun toBreed(): Breed {
         return Breed(
@@ -17,7 +18,8 @@ data class BreedResponse(
             minTemperature = minTemperature,
             maxTemperature = maxTemperature,
             minHeartRate = minHeartRate,
-            maxHeartRate = maxHeartRate
+            maxHeartRate = maxHeartRate,
+            userId = userId
         )
     }
 }

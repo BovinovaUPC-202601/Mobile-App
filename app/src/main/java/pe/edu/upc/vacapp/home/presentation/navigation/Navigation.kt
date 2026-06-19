@@ -37,6 +37,7 @@ import pe.edu.upc.vacapp.animal.presentation.di.PresentationModule.getAnimalView
 import pe.edu.upc.vacapp.animal.presentation.view.AddAnimalForm
 import pe.edu.upc.vacapp.animal.presentation.view.AnimalCardList
 import pe.edu.upc.vacapp.animal.presentation.view.AnimalDetails
+import pe.edu.upc.vacapp.animal.presentation.view.ManageBreedsView
 import pe.edu.upc.vacapp.barn.domain.model.Barn
 import pe.edu.upc.vacapp.barn.presentation.di.PresentationModel.getBarnViewModel
 import pe.edu.upc.vacapp.barn.presentation.view.AddBarnView
@@ -85,6 +86,7 @@ private fun pageTitleFor(route: String?): String? = when (route) {
     "ai-assistant" -> "Asistente IA"
     "subscription" -> "Suscripción"
     "add-campaign", "add-barn", "add-animal", "add-inventory" -> "Añadir"
+    "manage-breeds" -> "Administrar razas"
     "animal-details" -> "Detalles del animal"
     "inventory-details" -> "Detalles del inventario"
     "barn-details" -> "Establos"
@@ -310,7 +312,16 @@ fun Navigation(
                     AddAnimalForm(
                         viewmodel,
                         goHome = { navigateTo("home") },
-                        goAnimals = { navigateTo("animals") }
+                        goAnimals = { navigateTo("animals") },
+                        onManageBreeds = { navController.navigate("manage-breeds") }
+                    )
+                }
+
+                composable("manage-breeds") {
+                    val viewmodel = getAnimalViewModel()
+                    ManageBreedsView(
+                        viewModel = viewmodel,
+                        onBack = { navController.popBackStack() }
                     )
                 }
 
