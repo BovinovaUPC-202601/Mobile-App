@@ -1,5 +1,6 @@
 package pe.edu.upc.vacapp.campaign.presentation.view
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,6 +19,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
@@ -73,6 +75,8 @@ fun FormCampaignView(
     val errorMessage by viewModel.errorMessage.collectAsState()
     val barns by viewModel.barn.collectAsState()
     var selectedBarnIds by remember { mutableStateOf(setOf<Int>()) }
+    var selectedBovineIds by remember { mutableStateOf(setOf<Int>()) }
+    val animals by viewModel.animals.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(Unit) {
@@ -103,8 +107,8 @@ fun FormCampaignView(
                 localError = "La fecha de fin debe ser posterior a la fecha de inicio."
             } else if (endDate.isBefore(DateUtils.today())) {
                 localError = "La fecha de fin debe ser hoy o una fecha futura."
-            } else if (selectedBarnIds.isEmpty()) {
-                localError = "Selecciona al menos un establo."
+            } else if (selectedBarnIds.isEmpty() && selectedBovineIds.isEmpty()) {
+                localError = "Selecciona al menos un establo o un bovino."
             } else {
                 viewModel.addCanpaing(
                     Campaign(
@@ -113,6 +117,7 @@ fun FormCampaignView(
                         startDate = startDate,
                         endDate = endDate,
                         stableIds = selectedBarnIds.toList(),
+                        bovineIds = selectedBovineIds.toList(),
                     )
                 )
             }
@@ -187,6 +192,17 @@ fun FormCampaignView(
                                     selectedBarnIds - id
                                 else
                                     selectedBarnIds + id
+                            }
+                        )
+
+                        BovineMultiSelectField(
+                            animals = animals,
+                            selectedIds = selectedBovineIds,
+                            onToggle = { id ->
+                                selectedBovineIds = if (id in selectedBovineIds)
+                                    selectedBovineIds - id
+                                else
+                                    selectedBovineIds + id
                             }
                         )
 
@@ -321,6 +337,95 @@ private fun BarnMultiSelectField(
                                     )
                                     Text(
                                         text = barn.name,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
+                            }
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun BovineMultiSelectField(
+    animals: List<pe.edu.upc.vacapp.campaign.data.model.BovineResponse>,
+    selectedIds: Set<Int>,
+    onToggle: (Int) -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val label = if (selectedIds.isEmpty()) "Seleccionar bovinos"
+        else "${selectedIds.size} bovino${if (selectedIds.size != 1) "s" else ""} seleccionado${if (selectedIds.size != 1) "s" else ""}"
+
+    Surface(
+        onClick = { expanded = true },
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(56.dp),
+        shape = RoundedCornerShape(12.dp),
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
+    ) {
+        Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column {
+                    Text(
+                        text = "Bovinos",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = label,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = if (selectedIds.isNotEmpty()) MaterialTheme.colorScheme.onSurface
+                        else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                    )
+                }
+                Icon(
+                    imageVector = Icons.Filled.ArrowDropDown,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                if (animals.isEmpty()) {
+                    DropdownMenuItem(
+                        onClick = { expanded = false },
+                        text = {
+                            Text(
+                                text = "No hay bovinos disponibles",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    )
+                } else {
+                    animals.forEach { animal ->
+                        val checked = animal.id in selectedIds
+                        DropdownMenuItem(
+                            onClick = { onToggle(animal.id) },
+                            text = {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Checkbox(
+                                        checked = checked,
+                                        onCheckedChange = { onToggle(animal.id) }
+                                    )
+                                    Text(
+                                        text = animal.name,
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = MaterialTheme.colorScheme.onSurface
                                     )

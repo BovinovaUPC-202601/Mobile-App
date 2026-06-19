@@ -3,6 +3,7 @@ package pe.edu.upc.vacapp.campaign.data.repository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import pe.edu.upc.vacapp.barn.domain.model.Barn
+import pe.edu.upc.vacapp.campaign.data.model.BovineResponse
 import pe.edu.upc.vacapp.campaign.data.model.CreateCampaignRequest
 import pe.edu.upc.vacapp.campaign.data.remote.CampaignService
 import pe.edu.upc.vacapp.campaign.domain.model.Campaign
@@ -45,5 +46,15 @@ class CampaingRepository(
         }
 
         throw Exception(response.errorMessage())
+    }
+
+    suspend fun getAnimals(): List<BovineResponse> = withContext(Dispatchers.IO) {
+        val response = campaignService.getAnimals()
+
+        if (response.isSuccessful) {
+            response.body() ?: emptyList()
+        } else {
+            throw Exception(response.errorMessage())
+        }
     }
 }

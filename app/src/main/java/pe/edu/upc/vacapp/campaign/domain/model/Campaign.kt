@@ -10,4 +10,6 @@ data class Campaign(
     val endDate:  LocalDate = DateUtils.today(),
     val stableIds: List<Int> = emptyList(),
     val stableNames: List<String> = emptyList(),
+    val bovineIds: List<Int> = emptyList(),
+    val bovineNames: List<String> = emptyList(),
 )

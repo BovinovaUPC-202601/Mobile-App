@@ -7,6 +7,7 @@ import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MedicalServices
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.material.icons.filled.Pets
 import androidx.compose.material.icons.filled.Warehouse
 import androidx.compose.material.icons.filled.WorkspacePremium
@@ -53,11 +54,12 @@ import pe.edu.upc.vacapp.iam.presentation.view.components.AppTopBar
 import pe.edu.upc.vacapp.iam.presentation.view.components.DrawerItem
 import pe.edu.upc.vacapp.alerts.presentation.di.PresentationModule.getAlertViewModel
 import pe.edu.upc.vacapp.alerts.presentation.view.AlertView
-import pe.edu.upc.vacapp.inventory.domain.model.Inventory
+import pe.edu.upc.vacapp.inventory.domain.model.Category
+import pe.edu.upc.vacapp.inventory.domain.model.Product
 import pe.edu.upc.vacapp.inventory.presentation.di.PresentationModule.getInventoryViewModel
-import pe.edu.upc.vacapp.inventory.presentation.view.AddInventoryForm
-import pe.edu.upc.vacapp.inventory.presentation.view.InventoryCardList
-import pe.edu.upc.vacapp.inventory.presentation.view.InventoryDetails
+import pe.edu.upc.vacapp.inventory.presentation.view.AddCategoryView
+import pe.edu.upc.vacapp.inventory.presentation.view.AddProductView
+import pe.edu.upc.vacapp.inventory.presentation.view.InventoryView
 import pe.edu.upc.vacapp.monitoring.presentation.di.PresentationModule.getMonitoringViewModel
 import pe.edu.upc.vacapp.monitoring.presentation.view.MonitoringView
 import pe.edu.upc.vacapp.collars.presentation.di.PresentationModule.getCollarViewModel
@@ -69,6 +71,7 @@ private val drawerItems: List<DrawerItem> = listOf(
     DrawerItem("home", "Inicio", Icons.Default.Home),
     DrawerItem("animals", "Animales", Icons.Default.Pets),
     DrawerItem("campaign", "Campañas", Icons.Default.MedicalServices),
+    DrawerItem("inventory", "Inventario", Icons.Default.Inventory2),
     DrawerItem("barn", "Establos", Icons.Default.Warehouse),
     DrawerItem("monitoring", "Monitoreo", Icons.Default.Analytics, plusOnly = true),
     DrawerItem("alerts", "Alertas", Icons.Default.Notifications),
@@ -85,10 +88,10 @@ private fun pageTitleFor(route: String?): String? = when (route) {
     "alerts" -> "Alertas"
     "ai-assistant" -> "Asistente IA"
     "subscription" -> "Suscripción"
-    "add-campaign", "add-barn", "add-animal", "add-inventory" -> "Añadir"
+    "inventory" -> "Inventario"
+    "add-campaign", "add-barn", "add-animal", "add-inventory", "add-category" -> "Añadir"
     "manage-breeds" -> "Administrar razas"
     "animal-details" -> "Detalles del animal"
-    "inventory-details" -> "Detalles del inventario"
     "barn-details" -> "Establos"
     else -> null
 }
@@ -102,7 +105,8 @@ fun Navigation(
     val navController = rememberNavController()
     val scope = rememberCoroutineScope()
     val selectedAnimal = remember { mutableStateOf<Animal?>(null) }
-    val selectedInventory = remember { mutableStateOf<Inventory?>(null) }
+    val selectedProduct = remember { mutableStateOf<Product?>(null) }
+    val selectedCategory = remember { mutableStateOf<Category?>(null) }
     val selectedBarn = remember { mutableStateOf<Barn?>(null) }
     val homeViewModel = getHomeViewModel()
     val monitoringViewModel = getMonitoringViewModel()
@@ -187,6 +191,8 @@ fun Navigation(
                         onTapAddCampaign = { navController.navigate("add-campaign") },
                         onTapAddBarn = { navController.navigate("add-barn") },
                         onTapAnimal = { navController.navigate("add-animal") },
+                        onTapAddProduct = { navController.navigate("add-inventory") },
+                        onTapAddCategory = { navController.navigate("add-category") },
                         onTapInventory = { navController.navigate("add-inventory") },
                         onTapAnimalsSection = { navigateTo("animals") },
                         onTapCampaignSection = { navigateTo("campaign") },
@@ -207,6 +213,7 @@ fun Navigation(
                 composable("add-campaign") {
                     val viewmodel = getCampaignViewModel()
                     viewmodel.getBarns()
+                    viewmodel.getAnimals()
                     FormCampaignView(
                         goHome = { navigateTo("home") },
                         viewModel = viewmodel
@@ -273,11 +280,19 @@ fun Navigation(
 
                 composable("inventory") {
                     val viewmodel = getInventoryViewModel()
-                    viewmodel.getAllInventories()
-                    InventoryCardList(viewmodel) {
-                        selectedInventory.value = it
-                        navController.navigate("inventory-details")
-                    }
+                    InventoryView(
+                        viewModel = viewmodel,
+                        onAddProduct = { navController.navigate("add-inventory") },
+                        onAddCategory = { navController.navigate("add-category") },
+                        onEditProduct = { product ->
+                            selectedProduct.value = product
+                            navController.navigate("add-inventory")
+                        },
+                        onEditCategory = { category ->
+                            selectedCategory.value = category
+                            navController.navigate("add-category")
+                        }
+                    )
                 }
 
                 composable("ai-assistant") {
@@ -292,15 +307,6 @@ fun Navigation(
                         navigateTo("animals")
                     } else {
                         AnimalDetails(animal, getCollarViewModel(), getAnimalViewModel())
-                    }
-                }
-
-                composable("inventory-details") {
-                    val inventory = selectedInventory.value
-                    if (inventory == null) {
-                        navigateTo("inventory")
-                    } else {
-                        InventoryDetails(inventory)
                     }
                 }
 
@@ -327,10 +333,23 @@ fun Navigation(
 
                 composable("add-inventory") {
                     val viewmodel = getInventoryViewModel()
-                    viewmodel.getAnimals()
-                    AddInventoryForm(
-                        viewmodel,
-                        goHome = { navigateTo("home") }
+                    val editProduct = selectedProduct.value
+                    selectedProduct.value = null
+                    AddProductView(
+                        goHome = { navigateTo("home") },
+                        viewModel = viewmodel,
+                        editProduct = editProduct
+                    )
+                }
+
+                composable("add-category") {
+                    val viewmodel = getInventoryViewModel()
+                    val editCategory = selectedCategory.value
+                    selectedCategory.value = null
+                    AddCategoryView(
+                        goHome = { navigateTo("home") },
+                        viewModel = viewmodel,
+                        editCategory = editCategory
                     )
                 }
 

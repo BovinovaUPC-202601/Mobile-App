@@ -19,6 +19,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Folder
+import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.material.icons.filled.MedicalServices
 import androidx.compose.material.icons.filled.Pets
 import androidx.compose.material.icons.filled.Warehouse
@@ -53,6 +55,8 @@ fun HomeView(
     onTapAddCampaign: () -> Unit = {},
     onTapAnimal: () -> Unit = {},
     onTapAddBarn: () -> Unit = {},
+    onTapAddProduct: () -> Unit = {},
+    onTapAddCategory: () -> Unit = {},
     onTapInventory: () -> Unit = {},
     onTapAnimalsSection: () -> Unit = {},
     onTapCampaignSection: () -> Unit = {},
@@ -208,6 +212,26 @@ fun HomeView(
                     onClick = {
                         fabExpanded = false
                         onTapAddBarn()
+                    }
+                )
+                DropdownMenuItem(
+                    text = { Text("Producto") },
+                    leadingIcon = {
+                        Icon(Icons.Filled.Inventory2, contentDescription = null)
+                    },
+                    onClick = {
+                        fabExpanded = false
+                        onTapAddProduct()
+                    }
+                )
+                DropdownMenuItem(
+                    text = { Text("Categoría") },
+                    leadingIcon = {
+                        Icon(Icons.Filled.Folder, contentDescription = null)
+                    },
+                    onClick = {
+                        fabExpanded = false
+                        onTapAddCategory()
                     }
                 )
             }

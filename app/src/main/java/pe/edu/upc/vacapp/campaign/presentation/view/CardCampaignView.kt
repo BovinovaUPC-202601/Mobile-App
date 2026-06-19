@@ -25,6 +25,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import pe.edu.upc.vacapp.campaign.domain.model.Campaign
 import pe.edu.upc.vacapp.shared.data.di.timeFormatter
+import pe.edu.upc.vacapp.ui.theme.Sand40
+import pe.edu.upc.vacapp.ui.theme.Sand90
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -103,6 +105,32 @@ fun CardCampaignView(
                                     text = name,
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+
+                if (campaign.bovineNames.isNotEmpty()) {
+                    Text(
+                        text = "Bovinos",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        campaign.bovineNames.forEach { name ->
+                            Surface(
+                                shape = RoundedCornerShape(8.dp),
+                                color = Sand90
+                            ) {
+                                Text(
+                                    text = name,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = Sand40,
                                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                                 )
                             }

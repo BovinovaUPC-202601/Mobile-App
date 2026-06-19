@@ -11,6 +11,8 @@ data class CampaignResponse(
     val endDate: LocalDate,
     val stableIds: List<Int> = emptyList(),
     val stableNames: List<String> = emptyList(),
+    val bovineIds: List<Int> = emptyList(),
+    val bovineNames: List<String> = emptyList(),
 ) {
     fun toCampaign(): Campaign {
         return Campaign(
@@ -20,6 +22,8 @@ data class CampaignResponse(
             endDate = endDate,
             stableIds = stableIds,
             stableNames = stableNames,
+            bovineIds = bovineIds,
+            bovineNames = bovineNames,
         )
     }
 }
