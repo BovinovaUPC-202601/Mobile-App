@@ -75,7 +75,9 @@ import java.util.TimeZone
 fun AddAnimalForm(
     viewmodel: AnimalViewModel,
     goHome: () -> Unit,
-    goAnimals: () -> Unit
+    goAnimals: () -> Unit,
+    onManageBreeds: () -> Unit = {},
+    editAnimal: Animal? = null
 ) {
     Box(
         modifier = Modifier
@@ -93,7 +95,9 @@ fun AddAnimalForm(
             FormAnimalView(
                 viewmodel = viewmodel,
                 goHome = goHome,
-                goAnimals = goAnimals
+                goAnimals = goAnimals,
+                onManageBreeds = onManageBreeds,
+                editAnimal = editAnimal
             )
         }
     }
@@ -108,17 +112,21 @@ private const val MAX_HR_LIMIT = 150
 private fun FormAnimalView(
     viewmodel: AnimalViewModel,
     goHome: () -> Unit,
-    goAnimals: () -> Unit
+    goAnimals: () -> Unit,
+    onManageBreeds: () -> Unit = {},
+    editAnimal: Animal? = null
 ) {
     val context = LocalContext.current
+    val isEditing = editAnimal != null
     val isLoading by viewmodel.isLoading.collectAsState()
     val addSuccess by viewmodel.addAnimalSuccess.collectAsState()
+    val updateSuccess by viewmodel.updateSuccess.collectAsState()
     val errorMessage by viewmodel.errorMessage.collectAsState()
     val barns by viewmodel.barn.collectAsState()
     val breeds by viewmodel.breeds.collectAsState()
     val animals by viewmodel.animals.collectAsState()
 
-    var animal by remember { mutableStateOf(Animal()) }
+    var animal by remember(editAnimal) { mutableStateOf(editAnimal ?: Animal()) }
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     var imageFile by remember { mutableStateOf<File?>(null) }
     var localError by remember { mutableStateOf("") }
@@ -171,6 +179,14 @@ private fun FormAnimalView(
         }
     }
 
+    LaunchedEffect(updateSuccess) {
+        if (updateSuccess) {
+            viewmodel.clearErrorMessage()
+            viewmodel.clearUpdateSuccess()
+            goAnimals()
+        }
+    }
+
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -191,65 +207,84 @@ private fun FormAnimalView(
             verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
             Text(
-                text = "Añadir animal",
+                text = if (isEditing) "Editar animal" else "Añadir animal",
                 style = MaterialTheme.typography.headlineSmall,
                 color = MaterialTheme.colorScheme.onSurface
             )
 
-            // Image picker area
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(180.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(Emerald90)
-                    .clickable { galleryLauncher.launch("image/*") },
-                contentAlignment = Alignment.Center
-            ) {
-                if (imageUri != null) {
+            // Image
+            if (isEditing) {
+                val imgUrl = when (val image = editAnimal?.image) {
+                    is AnimalImage.FromUrl -> image.url
+                    else -> null
+                }
+                if (imgUrl != null) {
                     AsyncImage(
-                        model = imageUri,
+                        model = imgUrl,
                         contentDescription = null,
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(180.dp)
+                            .clip(RoundedCornerShape(12.dp))
                     )
-                } else {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.CameraAlt,
+                }
+            } else {
+                // Image picker area
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(180.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Emerald90)
+                        .clickable { galleryLauncher.launch("image/*") },
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (imageUri != null) {
+                        AsyncImage(
+                            model = imageUri,
                             contentDescription = null,
-                            tint = Emerald40,
-                            modifier = Modifier.size(40.dp)
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
                         )
-                        Text(
-                            text = "Toca para añadir foto",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = Emerald40
-                        )
+                    } else {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.CameraAlt,
+                                contentDescription = null,
+                                tint = Emerald40,
+                                modifier = Modifier.size(40.dp)
+                            )
+                            Text(
+                                text = "Toca para añadir foto",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Emerald40
+                            )
+                        }
                     }
                 }
-            }
 
-            // Quick-action buttons: Camera / Gallery
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                ImageActionButton(
-                    icon = Icons.Filled.CameraAlt,
-                    label = "Cámara",
-                    onClick = { launchCamera() },
-                    modifier = Modifier.weight(1f)
-                )
-                ImageActionButton(
-                    icon = Icons.Filled.PhotoLibrary,
-                    label = "Galería",
-                    onClick = { galleryLauncher.launch("image/*") },
-                    modifier = Modifier.weight(1f)
-                )
+                // Quick-action buttons: Camera / Gallery
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    ImageActionButton(
+                        icon = Icons.Filled.CameraAlt,
+                        label = "Cámara",
+                        onClick = { launchCamera() },
+                        modifier = Modifier.weight(1f)
+                    )
+                    ImageActionButton(
+                        icon = Icons.Filled.PhotoLibrary,
+                        label = "Galería",
+                        onClick = { galleryLauncher.launch("image/*") },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
             }
 
             // Name
@@ -283,6 +318,17 @@ private fun FormAnimalView(
                 GenderToggle(
                     isMale = animal.isMale,
                     onClick = { animal = animal.copy(isMale = !animal.isMale) }
+                )
+            }
+
+            TextButton(
+                onClick = onManageBreeds,
+                modifier = Modifier.align(Alignment.End)
+            ) {
+                Text(
+                    text = "Administrar razas",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = Emerald40
                 )
             }
 
@@ -367,7 +413,7 @@ private fun FormAnimalView(
 
             // Save
             PrimaryButton(
-                label = "Guardar animal",
+                label = if (isEditing) "Guardar cambios" else "Guardar animal",
                 onClick = {
                     localError = ""
                     val a = animal
@@ -376,25 +422,29 @@ private fun FormAnimalView(
                         a.breed.isBlank() -> localError = "Debes seleccionar una raza."
                         a.birthDate.isBlank() -> localError = "Debes seleccionar una fecha de nacimiento."
                         else -> {
-                            val birthLocalDate = try {
-                                LocalDate.parse(a.birthDate, DateTimeFormatter.ofPattern("dd/MM/yyyy"))
-                            } catch (_: Exception) { null }
-                            if (birthLocalDate == null || !birthLocalDate.isBefore(DateUtils.today())) {
-                                localError = "La fecha de nacimiento debe ser anterior a hoy."
-                            } else when {
-                                a.minTemperature > a.maxTemperature -> {
-                                    localError = "La temp. mín no puede superar la temp. máx."
+                            if (isEditing) {
+                                viewmodel.updateAnimal(a)
+                            } else {
+                                val birthLocalDate = try {
+                                    LocalDate.parse(a.birthDate, DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                                } catch (_: Exception) { null }
+                                if (birthLocalDate == null || !birthLocalDate.isBefore(DateUtils.today())) {
+                                    localError = "La fecha de nacimiento debe ser anterior a hoy."
+                                } else when {
+                                    a.minTemperature > a.maxTemperature -> {
+                                        localError = "La temp. mín no puede superar la temp. máx."
+                                    }
+                                    a.minHeartRate > a.maxHeartRate -> {
+                                        localError = "El pulso mín no puede superar el pulso máx."
+                                    }
+                                    a.minTemperature < MIN_TEMP_LIMIT || a.maxTemperature > MAX_TEMP_LIMIT -> {
+                                        localError = "La temperatura debe estar entre $MIN_TEMP_LIMIT y $MAX_TEMP_LIMIT °C."
+                                    }
+                                    a.minHeartRate < MIN_HR_LIMIT || a.maxHeartRate > MAX_HR_LIMIT -> {
+                                        localError = "El pulso debe estar entre $MIN_HR_LIMIT y $MAX_HR_LIMIT BPM."
+                                    }
+                                    else -> viewmodel.addAnimal(a)
                                 }
-                                a.minHeartRate > a.maxHeartRate -> {
-                                    localError = "El pulso mín no puede superar el pulso máx."
-                                }
-                                a.minTemperature < MIN_TEMP_LIMIT || a.maxTemperature > MAX_TEMP_LIMIT -> {
-                                    localError = "La temperatura debe estar entre $MIN_TEMP_LIMIT y $MAX_TEMP_LIMIT °C."
-                                }
-                                a.minHeartRate < MIN_HR_LIMIT || a.maxHeartRate > MAX_HR_LIMIT -> {
-                                    localError = "El pulso debe estar entre $MIN_HR_LIMIT y $MAX_HR_LIMIT BPM."
-                                }
-                                else -> viewmodel.addAnimal(a)
                             }
                         }
                     }

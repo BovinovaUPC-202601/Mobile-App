@@ -1,36 +1,55 @@
 package pe.edu.upc.vacapp.inventory.data.remote
 
-import okhttp3.MultipartBody
-import okhttp3.RequestBody
-import pe.edu.upc.vacapp.animal.data.model.AnimalResponse
-import pe.edu.upc.vacapp.inventory.data.model.InventoryResponse
+import pe.edu.upc.vacapp.inventory.data.model.CategoryResponse
+import pe.edu.upc.vacapp.inventory.data.model.CreateCategoryRequest
+import pe.edu.upc.vacapp.inventory.data.model.CreateProductRequest
+import pe.edu.upc.vacapp.inventory.data.model.ProductResponse
+import pe.edu.upc.vacapp.inventory.data.model.UpdateCategoryRequest
+import pe.edu.upc.vacapp.inventory.data.model.UpdateProductRequest
 import retrofit2.Response
+import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
-import retrofit2.http.Multipart
 import retrofit2.http.POST
-import retrofit2.http.Part
+import retrofit2.http.PUT
+import retrofit2.http.Path
 
 interface InventoryService {
-    /*
-    string Name,
-    string VaccineType,
-    DateTime VaccineDate,
-    int BovineId,
-    IFormFile? FileData;*/
+    @GET("inventory/products")
+    suspend fun getProducts(): Response<List<ProductResponse>>
 
-    @Multipart
-    @POST("vaccines")
-    suspend fun addInventory(
-        @Part("Name") name: RequestBody,
-        @Part("VaccineType") vaccineType: RequestBody,
-        @Part("VaccineDate") vaccineDate: RequestBody,
-        @Part("BovineId") bovineId: RequestBody,
-        @Part FileData: MultipartBody.Part
-    ): Response<InventoryResponse>
+    @POST("inventory/products")
+    suspend fun createProduct(
+        @Body product: CreateProductRequest
+    ): Response<ProductResponse>
 
-    @GET("vaccines")
-    suspend fun getAllInventories(): Response<List<InventoryResponse>>
+    @PUT("inventory/products/{id}")
+    suspend fun updateProduct(
+        @Path("id") id: Int,
+        @Body product: UpdateProductRequest
+    ): Response<ProductResponse>
 
-    @GET("bovines")
-    suspend fun getAnimals(): Response<List<AnimalResponse>>
+    @DELETE("inventory/products/{id}")
+    suspend fun deleteProduct(
+        @Path("id") id: Int
+    ): Response<Any>
+
+    @GET("inventory/categories")
+    suspend fun getCategories(): Response<List<CategoryResponse>>
+
+    @POST("inventory/categories")
+    suspend fun createCategory(
+        @Body category: CreateCategoryRequest
+    ): Response<CategoryResponse>
+
+    @PUT("inventory/categories/{id}")
+    suspend fun updateCategory(
+        @Path("id") id: Int,
+        @Body category: UpdateCategoryRequest
+    ): Response<CategoryResponse>
+
+    @DELETE("inventory/categories/{id}")
+    suspend fun deleteCategory(
+        @Path("id") id: Int
+    ): Response<Any>
 }

@@ -42,6 +42,7 @@ data class UserInfoResponse(
             totalAnimals = totalAnimals,
             totalCampaigns = totalCampaigns,
             totalBarns = totalStables,
+            totalProducts = totalProducts,
             nextCampaigns = nextCampaigns.map { c ->
                 NextCampaign(
                     c.id,

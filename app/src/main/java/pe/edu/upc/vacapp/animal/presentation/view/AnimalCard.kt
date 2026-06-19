@@ -16,17 +16,24 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Pets
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -49,9 +56,12 @@ import pe.edu.upc.vacapp.ui.theme.Sky90
 fun AnimalCardList(
     viewmodel: AnimalViewModel,
     onTap: (Animal) -> Unit,
-    onTapAddAnimal: () -> Unit = {}
+    onTapAddAnimal: () -> Unit = {},
+    onEdit: (Animal) -> Unit = {},
+    onDelete: (Animal) -> Unit = {}
 ) {
     val animals by viewmodel.animals.collectAsState()
+    var animalToDelete by remember { mutableStateOf<Animal?>(null) }
 
     Box(
         modifier = Modifier
@@ -73,7 +83,9 @@ fun AnimalCardList(
                 items(animals, key = { it.id }) { animal ->
                     AnimalCard(
                         animal = animal,
-                        onClick = { onTap(animal) }
+                        onClick = { onTap(animal) },
+                        onEdit = { onEdit(animal) },
+                        onDelete = { animalToDelete = animal }
                     )
                 }
             }
@@ -94,13 +106,34 @@ fun AnimalCardList(
             )
         }
     }
+
+    if (animalToDelete != null) {
+        AlertDialog(
+            onDismissRequest = { animalToDelete = null },
+            title = { Text("Eliminar animal") },
+            text = { Text("¿Estás seguro de eliminar a \"${animalToDelete?.name}\"?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        animalToDelete?.let { onDelete(it) }
+                        animalToDelete = null
+                    }
+                ) { Text("Eliminar", color = MaterialTheme.colorScheme.error) }
+            },
+            dismissButton = {
+                TextButton(onClick = { animalToDelete = null }) { Text("Cancelar") }
+            }
+        )
+    }
 }
 
 @Composable
 fun AnimalCard(
     animal: Animal,
     modifier: Modifier = Modifier,
-    onClick: () -> Unit = {}
+    onClick: () -> Unit = {},
+    onEdit: () -> Unit = {},
+    onDelete: () -> Unit = {}
 ) {
     val imgUrl = when (val image = animal.image) {
         is AnimalImage.FromUrl -> image.url
@@ -123,9 +156,9 @@ fun AnimalCard(
         tonalElevation = 0.dp
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp),
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(14.dp)
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             if (imgUrl != null) {
                 AsyncImage(
@@ -133,13 +166,13 @@ fun AnimalCard(
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
-                        .size(56.dp)
-                        .clip(RoundedCornerShape(12.dp))
+                        .size(48.dp)
+                        .clip(RoundedCornerShape(10.dp))
                 )
             } else {
                 Box(
                     modifier = Modifier
-                        .size(56.dp)
+                        .size(48.dp)
                         .background(Emerald90, CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
@@ -147,7 +180,7 @@ fun AnimalCard(
                         imageVector = Icons.Filled.Pets,
                         contentDescription = null,
                         tint = Emerald40,
-                        modifier = Modifier.size(26.dp)
+                        modifier = Modifier.size(22.dp)
                     )
                 }
             }
@@ -179,12 +212,24 @@ fun AnimalCard(
                     maxLines = 1
                 )
             }
-            Icon(
-                imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(20.dp)
-            )
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                IconButton(onClick = onEdit, modifier = Modifier.size(32.dp)) {
+                    Icon(
+                        imageVector = Icons.Filled.Edit,
+                        contentDescription = "Editar",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+                IconButton(onClick = onDelete, modifier = Modifier.size(32.dp)) {
+                    Icon(
+                        imageVector = Icons.Filled.Delete,
+                        contentDescription = "Eliminar",
+                        tint = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            }
         }
     }
 }

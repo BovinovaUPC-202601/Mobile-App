@@ -7,12 +7,15 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MedicalServices
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -25,11 +28,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import pe.edu.upc.vacapp.campaign.domain.model.Campaign
 import pe.edu.upc.vacapp.shared.data.di.timeFormatter
+import pe.edu.upc.vacapp.ui.theme.Sand40
+import pe.edu.upc.vacapp.ui.theme.Sand90
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun CardCampaignView(
-    campaign: Campaign
+    campaign: Campaign,
+    onEdit: (Campaign) -> Unit = {},
+    onDelete: (Campaign) -> Unit = {},
 ) {
     Surface(
         modifier = Modifier
@@ -107,6 +114,52 @@ fun CardCampaignView(
                                 )
                             }
                         }
+                    }
+                }
+
+                if (campaign.bovineNames.isNotEmpty()) {
+                    Text(
+                        text = "Bovinos",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        campaign.bovineNames.forEach { name ->
+                            Surface(
+                                shape = RoundedCornerShape(8.dp),
+                                color = Sand90
+                            ) {
+                                Text(
+                                    text = name,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = Sand40,
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    IconButton(onClick = { onEdit(campaign) }) {
+                        Icon(
+                            imageVector = Icons.Filled.Edit,
+                            contentDescription = "Editar campaña",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                    IconButton(onClick = { onDelete(campaign) }) {
+                        Icon(
+                            imageVector = Icons.Filled.Delete,
+                            contentDescription = "Eliminar campaña",
+                            tint = MaterialTheme.colorScheme.error
+                        )
                     }
                 }
 

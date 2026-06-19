@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import pe.edu.upc.vacapp.animal.data.model.BreedRequest
 import pe.edu.upc.vacapp.animal.data.repository.AnimalRepository
 import pe.edu.upc.vacapp.animal.domain.model.Animal
 import pe.edu.upc.vacapp.animal.domain.model.Breed
@@ -27,10 +28,19 @@ class AnimalViewModel(
     //
     private val _addAnimalSuccess = MutableStateFlow(false)
     val addAnimalSuccess: StateFlow<Boolean> = _addAnimalSuccess
+    //
+    private val _deleteSuccess = MutableStateFlow(false)
+    val deleteSuccess: StateFlow<Boolean> = _deleteSuccess
+    //
+    private val _updateSuccess = MutableStateFlow(false)
+    val updateSuccess: StateFlow<Boolean> = _updateSuccess
     private val _breeds = MutableStateFlow<List<Breed>>(emptyList())
     val breeds: StateFlow<List<Breed>> = _breeds
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
+    //
+    private val _breedError = MutableStateFlow<String?>(null)
+    val breedError: StateFlow<String?> = _breedError
 
     /* Methods */
     //
@@ -66,6 +76,25 @@ class AnimalViewModel(
     //
     fun clearAddAnimalSuccess() {
         _addAnimalSuccess.value = false
+    }
+    //
+    fun deleteAnimal(id: Int) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                animalRepository.deleteAnimal(id)
+                _deleteSuccess.value = true
+                getAllAnimals()
+            } catch (e: Exception) {
+                _errorMessage.value = e.message ?: "Error al eliminar animal"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun clearDeleteSuccess() {
+        _deleteSuccess.value = false
     }
     //
     fun getAllAnimals() {
@@ -108,6 +137,7 @@ class AnimalViewModel(
             _isLoading.value = true
             try {
                 _updatedAnimal.value = animalRepository.updateAnimal(animal)
+                _updateSuccess.value = true
             } catch (e: Exception) {
                 _errorMessage.value = e.message ?: "Error al actualizar animal"
             } finally {
@@ -118,5 +148,58 @@ class AnimalViewModel(
 
     fun clearUpdatedAnimal() {
         _updatedAnimal.value = null
+    }
+
+    fun clearUpdateSuccess() {
+        _updateSuccess.value = false
+    }
+
+    fun clearBreedError() {
+        _breedError.value = null
+    }
+
+    fun createBreed(request: BreedRequest) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _breedError.value = null
+            try {
+                animalRepository.createBreed(request)
+                getBreeds()
+            } catch (e: Exception) {
+                _breedError.value = e.message ?: "Error al crear raza"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun updateBreed(id: Int, request: BreedRequest) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _breedError.value = null
+            try {
+                animalRepository.updateBreed(id, request)
+                getBreeds()
+            } catch (e: Exception) {
+                _breedError.value = e.message ?: "Error al actualizar raza"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun deleteBreed(id: Int) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _breedError.value = null
+            try {
+                animalRepository.deleteBreed(id)
+                getBreeds()
+            } catch (e: Exception) {
+                _breedError.value = e.message ?: "Error al eliminar raza"
+            } finally {
+                _isLoading.value = false
+            }
+        }
     }
 }

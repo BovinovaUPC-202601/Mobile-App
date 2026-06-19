@@ -7,6 +7,7 @@ import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MedicalServices
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.material.icons.filled.Pets
 import androidx.compose.material.icons.filled.Warehouse
 import androidx.compose.material.icons.filled.WorkspacePremium
@@ -37,6 +38,7 @@ import pe.edu.upc.vacapp.animal.presentation.di.PresentationModule.getAnimalView
 import pe.edu.upc.vacapp.animal.presentation.view.AddAnimalForm
 import pe.edu.upc.vacapp.animal.presentation.view.AnimalCardList
 import pe.edu.upc.vacapp.animal.presentation.view.AnimalDetails
+import pe.edu.upc.vacapp.animal.presentation.view.ManageBreedsView
 import pe.edu.upc.vacapp.barn.domain.model.Barn
 import pe.edu.upc.vacapp.barn.presentation.di.PresentationModel.getBarnViewModel
 import pe.edu.upc.vacapp.barn.presentation.view.AddBarnView
@@ -52,11 +54,10 @@ import pe.edu.upc.vacapp.iam.presentation.view.components.AppTopBar
 import pe.edu.upc.vacapp.iam.presentation.view.components.DrawerItem
 import pe.edu.upc.vacapp.alerts.presentation.di.PresentationModule.getAlertViewModel
 import pe.edu.upc.vacapp.alerts.presentation.view.AlertView
-import pe.edu.upc.vacapp.inventory.domain.model.Inventory
 import pe.edu.upc.vacapp.inventory.presentation.di.PresentationModule.getInventoryViewModel
-import pe.edu.upc.vacapp.inventory.presentation.view.AddInventoryForm
-import pe.edu.upc.vacapp.inventory.presentation.view.InventoryCardList
-import pe.edu.upc.vacapp.inventory.presentation.view.InventoryDetails
+import pe.edu.upc.vacapp.inventory.presentation.view.AddCategoryView
+import pe.edu.upc.vacapp.inventory.presentation.view.AddProductView
+import pe.edu.upc.vacapp.inventory.presentation.view.InventoryView
 import pe.edu.upc.vacapp.monitoring.presentation.di.PresentationModule.getMonitoringViewModel
 import pe.edu.upc.vacapp.monitoring.presentation.view.MonitoringView
 import pe.edu.upc.vacapp.collars.presentation.di.PresentationModule.getCollarViewModel
@@ -68,6 +69,7 @@ private val drawerItems: List<DrawerItem> = listOf(
     DrawerItem("home", "Inicio", Icons.Default.Home),
     DrawerItem("animals", "Animales", Icons.Default.Pets),
     DrawerItem("campaign", "Campañas", Icons.Default.MedicalServices),
+    DrawerItem("inventory", "Inventario", Icons.Default.Inventory2),
     DrawerItem("barn", "Establos", Icons.Default.Warehouse),
     DrawerItem("monitoring", "Monitoreo", Icons.Default.Analytics, plusOnly = true),
     DrawerItem("alerts", "Alertas", Icons.Default.Notifications),
@@ -84,11 +86,11 @@ private fun pageTitleFor(route: String?): String? = when (route) {
     "alerts" -> "Alertas"
     "ai-assistant" -> "Asistente IA"
     "subscription" -> "Suscripción"
-    "add-campaign", "add-barn", "add-animal", "add-inventory" -> "Añadir"
+    "inventory" -> "Inventario"
+    "manage-breeds" -> "Administrar razas"
     "animal-details" -> "Detalles del animal"
-    "inventory-details" -> "Detalles del inventario"
     "barn-details" -> "Establos"
-    else -> null
+    else -> if (route?.startsWith("add-") == true || route?.startsWith("edit-") == true) "Añadir" else null
 }
 
 @Preview
@@ -100,7 +102,6 @@ fun Navigation(
     val navController = rememberNavController()
     val scope = rememberCoroutineScope()
     val selectedAnimal = remember { mutableStateOf<Animal?>(null) }
-    val selectedInventory = remember { mutableStateOf<Inventory?>(null) }
     val selectedBarn = remember { mutableStateOf<Barn?>(null) }
     val homeViewModel = getHomeViewModel()
     val monitoringViewModel = getMonitoringViewModel()
@@ -179,12 +180,21 @@ fun Navigation(
             ) {
                 composable("home") {
                     homeViewModel.getUserInfo()
+                    val inventoryViewModel = getInventoryViewModel()
+                    LaunchedEffect(Unit) { inventoryViewModel.getProducts() }
+                    val products by inventoryViewModel.products.collectAsState()
+                    val categoryCount = remember(products) {
+                        products.map { it.categoryId }.distinct().size
+                    }
 
                     HomeView(
                         viewmodel = homeViewModel,
+                        totalCategories = categoryCount,
                         onTapAddCampaign = { navController.navigate("add-campaign") },
                         onTapAddBarn = { navController.navigate("add-barn") },
                         onTapAnimal = { navController.navigate("add-animal") },
+                        onTapAddProduct = { navController.navigate("add-inventory") },
+                        onTapAddCategory = { navController.navigate("add-category") },
                         onTapInventory = { navController.navigate("add-inventory") },
                         onTapAnimalsSection = { navigateTo("animals") },
                         onTapCampaignSection = { navigateTo("campaign") },
@@ -198,16 +208,43 @@ fun Navigation(
                     viewmodel.getCampaing()
                     CampaignView(
                         viewModel = viewmodel,
-                        onTapAddCampaign = { navController.navigate("add-campaign") }
+                        onTapAddCampaign = { navController.navigate("add-campaign") },
+                        onEdit = { navController.navigate("edit-campaign/${it.id}") },
+                        onDelete = { viewmodel.deleteCampaign(it) }
                     )
                 }
 
                 composable("add-campaign") {
                     val viewmodel = getCampaignViewModel()
                     viewmodel.getBarns()
+                    viewmodel.getAnimals()
                     FormCampaignView(
                         goHome = { navigateTo("home") },
-                        viewModel = viewmodel
+                        viewModel = viewmodel,
+                        editCampaign = null
+                    )
+                }
+
+                composable("edit-campaign/{campaignId}") { backStackEntry ->
+                    val viewmodel = getCampaignViewModel()
+                    viewmodel.getBarns()
+                    viewmodel.getAnimals()
+                    val campaignId = backStackEntry.arguments?.getString("campaignId")?.toIntOrNull()
+                    if (campaignId == null) {
+                        navigateTo("home")
+                        return@composable
+                    }
+                    val campaigns by viewmodel.campaigns.collectAsState()
+                    LaunchedEffect(Unit) {
+                        if (campaigns.isEmpty()) viewmodel.getCampaing()
+                    }
+                    val editCampaign = remember(campaignId, campaigns) {
+                        campaigns.find { it.id == campaignId }
+                    }
+                    FormCampaignView(
+                        goHome = { navigateTo("home") },
+                        viewModel = viewmodel,
+                        editCampaign = editCampaign
                     )
                 }
 
@@ -265,17 +302,29 @@ fun Navigation(
                         },
                         onTapAddAnimal = {
                             navController.navigate("add-animal")
+                        },
+                        onEdit = {
+                            navController.navigate("edit-animal/${it.id}")
+                        },
+                        onDelete = { animal ->
+                            viewmodel.deleteAnimal(animal.id)
                         }
                     )
                 }
 
                 composable("inventory") {
                     val viewmodel = getInventoryViewModel()
-                    viewmodel.getAllInventories()
-                    InventoryCardList(viewmodel) {
-                        selectedInventory.value = it
-                        navController.navigate("inventory-details")
-                    }
+                    InventoryView(
+                        viewModel = viewmodel,
+                        onAddProduct = { navController.navigate("add-inventory") },
+                        onAddCategory = { navController.navigate("add-category") },
+                        onEditProduct = { product ->
+                            navController.navigate("edit-inventory/${product.id}")
+                        },
+                        onEditCategory = { category ->
+                            navController.navigate("edit-category/${category.id}")
+                        }
+                    )
                 }
 
                 composable("ai-assistant") {
@@ -293,15 +342,6 @@ fun Navigation(
                     }
                 }
 
-                composable("inventory-details") {
-                    val inventory = selectedInventory.value
-                    if (inventory == null) {
-                        navigateTo("inventory")
-                    } else {
-                        InventoryDetails(inventory)
-                    }
-                }
-
                 composable("add-animal") {
                     val viewmodel = getAnimalViewModel()
                     viewmodel.getBarns()
@@ -310,16 +350,103 @@ fun Navigation(
                     AddAnimalForm(
                         viewmodel,
                         goHome = { navigateTo("home") },
-                        goAnimals = { navigateTo("animals") }
+                        goAnimals = { navigateTo("animals") },
+                        onManageBreeds = { navController.navigate("manage-breeds") },
+                        editAnimal = null
+                    )
+                }
+
+                composable("edit-animal/{animalId}") { backStackEntry ->
+                    val viewmodel = getAnimalViewModel()
+                    viewmodel.getBarns()
+                    viewmodel.getBreeds()
+                    viewmodel.getAllAnimals()
+                    val animalId = backStackEntry.arguments?.getString("animalId")?.toIntOrNull()
+                    if (animalId == null) {
+                        navigateTo("animals")
+                        return@composable
+                    }
+                    val animals by viewmodel.animals.collectAsState()
+                    LaunchedEffect(Unit) {
+                        if (animals.isEmpty()) viewmodel.getAllAnimals()
+                    }
+                    val editAnimal = remember(animalId, animals) {
+                        animals.find { it.id == animalId }
+                    }
+                    AddAnimalForm(
+                        viewmodel,
+                        goHome = { navigateTo("home") },
+                        goAnimals = { navigateTo("animals") },
+                        onManageBreeds = { navController.navigate("manage-breeds") },
+                        editAnimal = editAnimal
+                    )
+                }
+
+                composable("manage-breeds") {
+                    val viewmodel = getAnimalViewModel()
+                    ManageBreedsView(
+                        viewModel = viewmodel,
+                        onBack = { navController.popBackStack() }
                     )
                 }
 
                 composable("add-inventory") {
                     val viewmodel = getInventoryViewModel()
-                    viewmodel.getAnimals()
-                    AddInventoryForm(
-                        viewmodel,
-                        goHome = { navigateTo("home") }
+                    AddProductView(
+                        goHome = { navigateTo("home") },
+                        viewModel = viewmodel,
+                        editProduct = null
+                    )
+                }
+
+                composable("edit-inventory/{productId}") { backStackEntry ->
+                    val viewmodel = getInventoryViewModel()
+                    val productId = backStackEntry.arguments?.getString("productId")?.toIntOrNull()
+                    if (productId == null) {
+                        navigateTo("home")
+                        return@composable
+                    }
+                    val products by viewmodel.products.collectAsState()
+                    LaunchedEffect(Unit) {
+                        if (products.isEmpty()) viewmodel.getProducts()
+                    }
+                    val editProduct = remember(productId, products) {
+                        products.find { it.id == productId }
+                    }
+                    AddProductView(
+                        goHome = { navigateTo("home") },
+                        viewModel = viewmodel,
+                        editProduct = editProduct
+                    )
+                }
+
+                composable("add-category") {
+                    val viewmodel = getInventoryViewModel()
+                    AddCategoryView(
+                        goHome = { navigateTo("home") },
+                        viewModel = viewmodel,
+                        editCategory = null
+                    )
+                }
+
+                composable("edit-category/{categoryId}") { backStackEntry ->
+                    val viewmodel = getInventoryViewModel()
+                    val categoryId = backStackEntry.arguments?.getString("categoryId")?.toIntOrNull()
+                    if (categoryId == null) {
+                        navigateTo("home")
+                        return@composable
+                    }
+                    val categories by viewmodel.categories.collectAsState()
+                    LaunchedEffect(Unit) {
+                        if (categories.isEmpty()) viewmodel.getCategories()
+                    }
+                    val editCategory = remember(categoryId, categories) {
+                        categories.find { it.id == categoryId }
+                    }
+                    AddCategoryView(
+                        goHome = { navigateTo("home") },
+                        viewModel = viewmodel,
+                        editCategory = editCategory
                     )
                 }
 

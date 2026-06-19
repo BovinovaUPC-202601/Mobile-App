@@ -6,5 +6,6 @@ data class Breed(
     val minTemperature: Double,
     val maxTemperature: Double,
     val minHeartRate: Int,
-    val maxHeartRate: Int
+    val maxHeartRate: Int,
+    val userId: Int? = null
 )

@@ -1,25 +1,22 @@
 package pe.edu.upc.vacapp.campaign.data.model
 
-import org.threeten.bp.LocalDate
-import org.threeten.bp.format.DateTimeFormatter
 import pe.edu.upc.vacapp.campaign.domain.model.Campaign
 
-
-data class CreateCampaignRequest(
+data class UpdateCampaignRequest(
     val name: String,
     val description: String,
-    val startDate: LocalDate,
-    val endDate: LocalDate,
+    val startDate: String,
+    val endDate: String,
     val stableIds: List<Int>,
     val bovineIds: List<Int>,
 ) {
     companion object {
-        fun fromCampaign(c: Campaign): CreateCampaignRequest {
-            return CreateCampaignRequest(
+        fun fromCampaign(c: Campaign): UpdateCampaignRequest {
+            return UpdateCampaignRequest(
                 name = c.name,
                 description = c.description,
-                startDate = c.startDate,
-                endDate = c.endDate,
+                startDate = c.startDate.toString(),
+                endDate = c.endDate.toString(),
                 stableIds = c.stableIds,
                 bovineIds = c.bovineIds,
             )
